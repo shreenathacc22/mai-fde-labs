@@ -5,7 +5,8 @@ tokens go on the agents and not on a UI.
     from _chat_web import serve
     serve(runner, host="127.0.0.1", port=7866, title="...")
 
-Two JSON endpoints, both POST: /api/chat {thread, text} and /api/resume
+`suggestions` fill the input's autocomplete (a <datalist>; the browser filters
+as you type). Two JSON endpoints, both POST: /api/chat {thread, text} and /api/resume
 {thread, decision}. The page keeps the thread id; the graph keeps the state.
 
 Binding: 127.0.0.1 by default. Any other host (Docker, a cloud box) requires
@@ -17,6 +18,7 @@ token bill by Monday.
 from __future__ import annotations
 
 import hmac
+import html
 import json
 import os
 import sys
@@ -43,13 +45,16 @@ form div{max-width:860px;margin:0 auto;display:flex;gap:8px}
 input{flex:1;font:inherit;padding:10px 12px;border:1px solid #c9c3b5;border-radius:8px;background:#fff}
 .err{color:#c0392b;font-size:13px}
 </style></head><body><div class="wrap">
-<h1>__TITLE__</h1><p class="sub">Modern AI Pro · FDE Field Kit · lab 2b · a router, three specialists, one gate. Every write pauses here until you answer.</p>
+<h1>__TITLE__</h1><p class="sub">__SUBTITLE____LINKS__</p>
 <div id="log"></div></div>
-<form id="f"><div><input id="t" autocomplete="off" placeholder="Ask the desk — e.g. what is the status of T-30535?"><button>Send</button></div></form>
+<form id="f"><div><input id="t" list="qs" autocomplete="off" placeholder="__PLACEHOLDER__"><button>Send</button></div><datalist id="qs">__SUGGESTIONS__</datalist></form>
 <script>
 const thread = Math.random().toString(16).slice(2,10);
-const key = new URLSearchParams(location.search).get('k') || '';
-if (key) history.replaceState(null, '', location.pathname);
+const urlKey = new URLSearchParams(location.search).get('k') || '';
+if (urlKey) { localStorage.setItem('chatSecret', urlKey); history.replaceState(null, '', location.pathname); }
+const key = urlKey || localStorage.getItem('chatSecret') || '';   // survives refresh in this browser
+const preset = new URLSearchParams(location.search).get('q');      // ?q=... prefills the box (links from other pages)
+if (preset) { document.getElementById('t').value = preset; history.replaceState(null, '', location.pathname); }
 const log = document.getElementById('log');
 function add(cls, text){const d=document.createElement('div');d.className=cls;d.textContent=text;log.appendChild(d);window.scrollTo(0,document.body.scrollHeight);return d}
 function render(out){
@@ -76,11 +81,29 @@ document.getElementById('f').onsubmit=async e=>{e.preventDefault();const t=docum
 </script></body></html>"""
 
 
-def serve(runner, host: str = "127.0.0.1", port: int = 7866, title: str = "the desk") -> None:
+SUBTITLE = ("Modern AI Pro · FDE Field Kit · lab 2b · a router, three specialists, one gate. "
+            "Every write pauses here until you answer.")
+PLACEHOLDER = "Ask the desk — e.g. what is the status of T-30535?"
+
+
+def serve(runner, host: str = "127.0.0.1", port: int = 7866, title: str = "the desk",
+          suggestions: list[str] | None = None, subtitle: str = SUBTITLE,
+          placeholder: str = PLACEHOLDER, pages: dict[str, bytes] | None = None,
+          get_api: dict | None = None, links: list[tuple[str, str]] | None = None) -> None:
+    """`pages`: extra public HTML pages by path (they hold no data). `get_api`: GET
+    endpoints by path, each a callable(query: dict) -> JSON-able, behind the same
+    secret as the chat. `links`: (label, href) pairs shown under the title."""
     secret = os.environ.get("CHAT_SECRET", "")
     if host != "127.0.0.1" and not secret:
         sys.exit("refusing to bind " + host + " without CHAT_SECRET in the environment (see docs/GRAPH.md)")
-    page = PAGE.replace("__TITLE__", title).encode()
+    opts = "".join(f'<option value="{html.escape(q, quote=True)}">' for q in suggestions or [])
+    page = (PAGE.replace("__TITLE__", html.escape(title)).replace("__SUBTITLE__", html.escape(subtitle))
+            .replace("__PLACEHOLDER__", html.escape(placeholder, quote=True))
+            .replace("__SUGGESTIONS__", opts)
+            .replace("__LINKS__", "".join(f' · <a href="{html.escape(h, quote=True)}">{html.escape(t)}</a>'
+                                          for t, h in links or []))
+            .encode())
+    pages, get_api = pages or {}, get_api or {}
 
     class H(BaseHTTPRequestHandler):
         def log_message(self, *a):  # quiet
@@ -94,9 +117,21 @@ def serve(runner, host: str = "127.0.0.1", port: int = 7866, title: str = "the d
             self.wfile.write(body)
 
         def do_GET(self):
-            if self.path.split("?")[0] != "/":
-                return self._send(404, b"not found", "text/plain")
-            self._send(200, page, "text/html")
+            path, _, qs = self.path.partition("?")
+            if path == "/":
+                return self._send(200, page, "text/html")
+            if path in pages:
+                return self._send(200, pages[path], "text/html")
+            if path in get_api:
+                if secret and not hmac.compare_digest(self.headers.get("X-Chat-Secret", ""), secret):
+                    return self._send(401, b"secret missing or wrong", "text/plain")
+                try:
+                    from urllib.parse import parse_qs  # noqa: PLC0415
+                    out = get_api[path]({k: v[-1] for k, v in parse_qs(qs).items()})
+                    return self._send(200, json.dumps(out, ensure_ascii=False, default=str).encode())
+                except Exception as e:  # noqa: BLE001
+                    return self._send(500, f"{type(e).__name__}: {e}".encode(), "text/plain")
+            self._send(404, b"not found", "text/plain")
 
         def do_POST(self):
             if secret and not hmac.compare_digest(self.headers.get("X-Chat-Secret", ""), secret):

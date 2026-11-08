@@ -35,16 +35,20 @@ SERVER = Path(__file__).resolve().parent / "estate_mcp.py"
 
 
 @asynccontextmanager
-async def estate_session(user_id: str) -> AsyncIterator[ClientSession]:
-    """Spawn the estate server as `user_id` and yield a ready session."""
+async def estate_session(user_id: str, server: Path | str = SERVER,
+                         env_prefixes: tuple[str, ...] = ("ESTATE_",)) -> AsyncIterator[ClientSession]:
+    """Spawn the estate server as `user_id` and yield a ready session. `server`
+    and `env_prefixes` let another product (edtech/) reuse this client against
+    its own MCP server and its own *_STATE_DIR variables."""
     # The SDK starts the server with a SAFE default environment (PATH, HOME and
     # a few more), not ours — which is right: the model key in this process must
     # never reach the customer's system. The one thing the server does need is
     # where the estate keeps its mutable files (ESTATE_STATE_DIR, ESTATE_USER),
     # so only the ESTATE_* variables are merged over that default.
-    passthrough = {k: v for k, v in os.environ.items() if k.startswith("ESTATE_")}
-    params = StdioServerParameters(command=sys.executable, args=[str(SERVER), "--as", user_id],
-                                   cwd=str(SERVER.parent.parent), env=passthrough or None)
+    passthrough = {k: v for k, v in os.environ.items() if k.startswith(env_prefixes)}
+    server = Path(server)
+    params = StdioServerParameters(command=sys.executable, args=[str(server), "--as", user_id],
+                                   cwd=str(server.parent.parent), env=passthrough or None)
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
