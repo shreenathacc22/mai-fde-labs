@@ -1,0 +1,560 @@
+[
+  {
+    "id": "S-1001",
+    "name": "Aisha Khan",
+    "email": "aisha.khan0@mail.example",
+    "phone": "(528) 555-9233",
+    "address": "8395 Oak Court, Portland",
+    "date_of_birth": "1988-04-20",
+    "guardian": null,
+    "accommodation": {
+      "type": "extra time 25%",
+      "reason": "medical documentation on file"
+    },
+    "status": "active"
+  },
+  {
+    "id": "S-1002",
+    "name": "Leo Marsh",
+    "email": "leo.marsh1@mail.example",
+    "phone": "(770) 555-7891",
+    "address": "9390 Birch Drive, Tucson",
+    "date_of_birth": "2004-08-25",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1003",
+    "name": "Noor Haddad",
+    "email": "noor.haddad2@mail.example",
+    "phone": "(801) 555-8226",
+    "address": "3941 Maple Street, Madison",
+    "date_of_birth": "2008-02-04",
+    "guardian": {
+      "name": "Rami Haddad",
+      "phone": "(512) 555-0142",
+      "consent_on_file": true
+    },
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1004",
+    "name": "Sofia Lopez",
+    "email": "sofia.lopez3@mail.example",
+    "phone": "(212) 555-9032",
+    "address": "5158 Harbor Road, Raleigh",
+    "date_of_birth": "1999-05-12",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1005",
+    "name": "Amara Silva",
+    "email": "amara.silva4@mail.example",
+    "phone": "(854) 555-2250",
+    "address": "5587 Maple Street, Madison",
+    "date_of_birth": "2001-09-10",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1006",
+    "name": "Sofia Cohen",
+    "email": "sofia.cohen5@mail.example",
+    "phone": "(861) 555-6062",
+    "address": "415 Oak Court, Denver",
+    "date_of_birth": "1989-06-15",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1007",
+    "name": "Hana Haddad",
+    "email": "hana.haddad6@mail.example",
+    "phone": "(800) 555-9166",
+    "address": "1917 Cedar Lane, Madison",
+    "date_of_birth": "1997-10-16",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1008",
+    "name": "Diego Ruiz",
+    "email": "diego.ruiz7@mail.example",
+    "phone": "(631) 555-8851",
+    "address": "8414 Birch Drive, Portland",
+    "date_of_birth": "1993-10-08",
+    "guardian": null,
+    "accommodation": {
+      "type": "extra time 50%",
+      "reason": "learning difference, assessed 2025"
+    },
+    "status": "active"
+  },
+  {
+    "id": "S-1009",
+    "name": "Ethan Marsh",
+    "email": "ethan.marsh8@mail.example",
+    "phone": "(887) 555-2680",
+    "address": "7045 Cedar Lane, Austin",
+    "date_of_birth": "2001-08-08",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1010",
+    "name": "Maya Cohen",
+    "email": "maya.cohen9@mail.example",
+    "phone": "(681) 555-9939",
+    "address": "4122 Birch Drive, Raleigh",
+    "date_of_birth": "2006-11-10",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1011",
+    "name": "Nia Ruiz",
+    "email": "nia.ruiz10@mail.example",
+    "phone": "(612) 555-8095",
+    "address": "3328 Elm Avenue, Denver",
+    "date_of_birth": "2000-01-02",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1012",
+    "name": "Ethan Lund",
+    "email": "ethan.lund11@mail.example",
+    "phone": "(736) 555-9020",
+    "address": "5907 Harbor Road, Denver",
+    "date_of_birth": "1999-12-16",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1013",
+    "name": "Isaac Ruiz",
+    "email": "isaac.ruiz12@mail.example",
+    "phone": "(645) 555-1550",
+    "address": "4762 Elm Avenue, Raleigh",
+    "date_of_birth": "2000-02-15",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1014",
+    "name": "Felix Ruiz",
+    "email": "felix.ruiz13@mail.example",
+    "phone": "(664) 555-3999",
+    "address": "6985 Oak Court, Raleigh",
+    "date_of_birth": "1993-02-21",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1015",
+    "name": "Owen Berg",
+    "email": "owen.berg14@mail.example",
+    "phone": "(299) 555-4188",
+    "address": "6748 Harbor Road, Raleigh",
+    "date_of_birth": "1996-01-03",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1016",
+    "name": "Aisha Cohen",
+    "email": "aisha.cohen15@mail.example",
+    "phone": "(760) 555-2360",
+    "address": "3267 Harbor Road, Portland",
+    "date_of_birth": "2003-10-02",
+    "guardian": null,
+    "accommodation": {
+      "type": "extra time 25%",
+      "reason": "medical documentation on file"
+    },
+    "status": "active"
+  },
+  {
+    "id": "S-1017",
+    "name": "Nia Doyle",
+    "email": "nia.doyle16@mail.example",
+    "phone": "(976) 555-6853",
+    "address": "2545 Maple Street, Denver",
+    "date_of_birth": "2006-11-19",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1018",
+    "name": "Ravi Berg",
+    "email": "ravi.berg17@mail.example",
+    "phone": "(759) 555-4652",
+    "address": "7759 Birch Drive, Austin",
+    "date_of_birth": "1989-10-23",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1019",
+    "name": "Mateo Rossi",
+    "email": "mateo.rossi18@mail.example",
+    "phone": "(628) 555-3623",
+    "address": "2227 Birch Drive, Denver",
+    "date_of_birth": "1987-09-14",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1020",
+    "name": "Diego Wright",
+    "email": "diego.wright19@mail.example",
+    "phone": "(402) 555-7160",
+    "address": "241 Maple Street, Raleigh",
+    "date_of_birth": "2001-02-02",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1021",
+    "name": "Amara Obi",
+    "email": "amara.obi20@mail.example",
+    "phone": "(227) 555-9362",
+    "address": "7809 Elm Avenue, Tucson",
+    "date_of_birth": "1985-05-15",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1022",
+    "name": "Kenji Lopez",
+    "email": "kenji.lopez21@mail.example",
+    "phone": "(678) 555-3797",
+    "address": "2531 Birch Drive, Madison",
+    "date_of_birth": "2000-04-14",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1023",
+    "name": "Tess Ito",
+    "email": "tess.ito22@mail.example",
+    "phone": "(813) 555-4822",
+    "address": "1148 Birch Drive, Raleigh",
+    "date_of_birth": "1999-01-07",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1024",
+    "name": "Yusuf Ali",
+    "email": "yusuf.ali23@mail.example",
+    "phone": "(864) 555-9925",
+    "address": "799 Cedar Lane, Tucson",
+    "date_of_birth": "1986-04-16",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1025",
+    "name": "Felix Khan",
+    "email": "felix.khan24@mail.example",
+    "phone": "(862) 555-9682",
+    "address": "3593 Birch Drive, Austin",
+    "date_of_birth": "1989-03-22",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1026",
+    "name": "Zara Silva",
+    "email": "zara.silva25@mail.example",
+    "phone": "(636) 555-9732",
+    "address": "6794 Maple Street, Raleigh",
+    "date_of_birth": "1993-05-06",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1027",
+    "name": "Amara Ali",
+    "email": "amara.ali26@mail.example",
+    "phone": "(676) 555-9152",
+    "address": "6821 Elm Avenue, Raleigh",
+    "date_of_birth": "1993-03-11",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1028",
+    "name": "Mateo Berg",
+    "email": "mateo.berg27@mail.example",
+    "phone": "(323) 555-9638",
+    "address": "8606 Elm Avenue, Portland",
+    "date_of_birth": "1999-04-08",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1029",
+    "name": "Aisha Haddad",
+    "email": "aisha.haddad28@mail.example",
+    "phone": "(862) 555-6413",
+    "address": "6694 Birch Drive, Tucson",
+    "date_of_birth": "1999-03-01",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1030",
+    "name": "Amara Ali",
+    "email": "amara.ali29@mail.example",
+    "phone": "(776) 555-9820",
+    "address": "3557 Maple Street, Madison",
+    "date_of_birth": "1996-12-09",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1031",
+    "name": "Nia Shah",
+    "email": "nia.shah30@mail.example",
+    "phone": "(784) 555-5828",
+    "address": "9231 Elm Avenue, Tucson",
+    "date_of_birth": "1991-09-05",
+    "guardian": null,
+    "accommodation": {
+      "type": "extra time 25%",
+      "reason": "medical documentation on file"
+    },
+    "status": "active"
+  },
+  {
+    "id": "S-1032",
+    "name": "Maya Doyle",
+    "email": "maya.doyle31@mail.example",
+    "phone": "(647) 555-3806",
+    "address": "1747 Oak Court, Portland",
+    "date_of_birth": "1988-06-24",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1033",
+    "name": "Zara Lopez",
+    "email": "zara.lopez32@mail.example",
+    "phone": "(522) 555-5534",
+    "address": "9645 Maple Street, Denver",
+    "date_of_birth": "2001-06-06",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1034",
+    "name": "Owen Doyle",
+    "email": "owen.doyle33@mail.example",
+    "phone": "(215) 555-7744",
+    "address": "4221 Cedar Lane, Portland",
+    "date_of_birth": "1987-01-04",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1035",
+    "name": "Priya Khan",
+    "email": "priya.khan34@mail.example",
+    "phone": "(326) 555-2537",
+    "address": "9204 Birch Drive, Denver",
+    "date_of_birth": "1994-06-25",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1036",
+    "name": "Isaac Lund",
+    "email": "isaac.lund35@mail.example",
+    "phone": "(871) 555-1622",
+    "address": "6632 Elm Avenue, Madison",
+    "date_of_birth": "2005-04-20",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1037",
+    "name": "Isaac Park",
+    "email": "isaac.park36@mail.example",
+    "phone": "(323) 555-7130",
+    "address": "8222 Oak Court, Denver",
+    "date_of_birth": "2006-07-10",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1038",
+    "name": "Amara Marsh",
+    "email": "amara.marsh37@mail.example",
+    "phone": "(225) 555-5610",
+    "address": "5425 Elm Avenue, Tucson",
+    "date_of_birth": "1998-02-10",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1039",
+    "name": "Hana Ito",
+    "email": "hana.ito38@mail.example",
+    "phone": "(221) 555-9882",
+    "address": "5621 Harbor Road, Madison",
+    "date_of_birth": "2003-01-24",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1040",
+    "name": "Maya Ali",
+    "email": "maya.ali39@mail.example",
+    "phone": "(326) 555-2937",
+    "address": "621 Harbor Road, Madison",
+    "date_of_birth": "2004-06-20",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1041",
+    "name": "Yusuf Rossi",
+    "email": "yusuf.rossi40@mail.example",
+    "phone": "(635) 555-3069",
+    "address": "5842 Cedar Lane, Raleigh",
+    "date_of_birth": "1985-07-08",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1042",
+    "name": "Hana Nair",
+    "email": "hana.nair41@mail.example",
+    "phone": "(388) 555-9895",
+    "address": "475 Oak Court, Tucson",
+    "date_of_birth": "1989-09-22",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1043",
+    "name": "Nia Silva",
+    "email": "nia.silva42@mail.example",
+    "phone": "(352) 555-4739",
+    "address": "392 Maple Street, Denver",
+    "date_of_birth": "1993-09-16",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1044",
+    "name": "Hana Doyle",
+    "email": "hana.doyle43@mail.example",
+    "phone": "(342) 555-2465",
+    "address": "2947 Birch Drive, Portland",
+    "date_of_birth": "1995-11-28",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1045",
+    "name": "Mateo Doyle",
+    "email": "mateo.doyle44@mail.example",
+    "phone": "(849) 555-9527",
+    "address": "5211 Maple Street, Tucson",
+    "date_of_birth": "1995-01-21",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1046",
+    "name": "Priya Berg",
+    "email": "priya.berg45@mail.example",
+    "phone": "(428) 555-9333",
+    "address": "2481 Oak Court, Raleigh",
+    "date_of_birth": "1986-12-12",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1047",
+    "name": "Priya Adeyemi",
+    "email": "priya.adeyemi46@mail.example",
+    "phone": "(552) 555-4292",
+    "address": "6149 Elm Avenue, Raleigh",
+    "date_of_birth": "1993-11-15",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1048",
+    "name": "Nia Berg",
+    "email": "nia.berg47@mail.example",
+    "phone": "(795) 555-6114",
+    "address": "3088 Harbor Road, Tucson",
+    "date_of_birth": "2006-07-05",
+    "guardian": null,
+    "accommodation": null,
+    "status": "active"
+  },
+  {
+    "id": "S-1049",
+    "name": "Aisha Khan-Patel",
+    "email": "aisha.khan0@mail.example",
+    "phone": "(528) 555-9233",
+    "address": "8395 Oak Court, Portland",
+    "date_of_birth": "1988-04-20",
+    "guardian": null,
+    "accommodation": {
+      "type": "extra time 25%",
+      "reason": "medical documentation on file"
+    },
+    "status": "duplicate?"
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "PY101",
+    "title": "Introduction to Python",
+    "tutor": "tutor.lena",
+    "fee_usd": 490,
+    "term_start": "2026-09-07",
+    "region": "all"
+  },
+  {
+    "id": "DS201",
+    "title": "Data Science with pandas",
+    "tutor": "tutor.lena",
+    "fee_usd": 690,
+    "term_start": "2026-09-07",
+    "region": "all"
+  },
+  {
+    "id": "WR110",
+    "title": "Academic Writing",
+    "tutor": "tutor.omar",
+    "fee_usd": 390,
+    "term_start": "2026-09-07",
+    "region": "all"
+  },
+  {
+    "id": "MA120",
+    "title": "Applied Statistics",
+    "tutor": "tutor.omar",
+    "fee_usd": 490,
+    "term_start": "2026-09-07",
+    "region": "all"
+  },
+  {
+    "id": "UX150",
+    "title": "UX Design Foundations",
+    "tutor": "tutor.kai",
+    "fee_usd": 590,
+    "term_start": "2026-09-07",
+    "region": "all"
+  },
+  {
+    "id": "BI130",
+    "title": "Business Analytics",
+    "tutor": "tutor.kai",
+    "fee_usd": 590,
+    "term_start": "2026-09-07",
+    "region": "all"
+  }
+]

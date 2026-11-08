@@ -8,3 +8,8 @@ traces.jsonl
 estate/data/state.json
 estate/data/audit.jsonl
 .git
+edtech/data/state.json
+edtech/data/audit.jsonl
+.env*
+*.pem
+*.key

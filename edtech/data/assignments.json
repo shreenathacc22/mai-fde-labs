@@ -1,0 +1,146 @@
+[
+  {
+    "id": "A-PY101-1",
+    "course_id": "PY101",
+    "title": "PY101 Assignment 1",
+    "due": "2026-10-05",
+    "weight": 20,
+    "is_exam": false
+  },
+  {
+    "id": "A-PY101-2",
+    "course_id": "PY101",
+    "title": "PY101 Assignment 2",
+    "due": "2026-11-09",
+    "weight": 30,
+    "is_exam": false
+  },
+  {
+    "id": "A-PY101-FINAL",
+    "course_id": "PY101",
+    "title": "PY101 Final exam",
+    "due": "2026-12-14",
+    "weight": 50,
+    "is_exam": true
+  },
+  {
+    "id": "A-DS201-1",
+    "course_id": "DS201",
+    "title": "DS201 Assignment 1",
+    "due": "2026-10-05",
+    "weight": 20,
+    "is_exam": false
+  },
+  {
+    "id": "A-DS201-2",
+    "course_id": "DS201",
+    "title": "DS201 Assignment 2",
+    "due": "2026-11-09",
+    "weight": 30,
+    "is_exam": false
+  },
+  {
+    "id": "A-DS201-FINAL",
+    "course_id": "DS201",
+    "title": "DS201 Final exam",
+    "due": "2026-12-14",
+    "weight": 50,
+    "is_exam": true
+  },
+  {
+    "id": "A-WR110-1",
+    "course_id": "WR110",
+    "title": "WR110 Assignment 1",
+    "due": "2026-10-05",
+    "weight": 20,
+    "is_exam": false
+  },
+  {
+    "id": "A-WR110-2",
+    "course_id": "WR110",
+    "title": "WR110 Assignment 2",
+    "due": "2026-11-09",
+    "weight": 30,
+    "is_exam": false
+  },
+  {
+    "id": "A-WR110-FINAL",
+    "course_id": "WR110",
+    "title": "WR110 Final exam",
+    "due": "2026-12-14",
+    "weight": 50,
+    "is_exam": true
+  },
+  {
+    "id": "A-MA120-1",
+    "course_id": "MA120",
+    "title": "MA120 Assignment 1",
+    "due": "2026-10-05",
+    "weight": 20,
+    "is_exam": false
+  },
+  {
+    "id": "A-MA120-2",
+    "course_id": "MA120",
+    "title": "MA120 Assignment 2",
+    "due": "2026-11-09",
+    "weight": 30,
+    "is_exam": false
+  },
+  {
+    "id": "A-MA120-FINAL",
+    "course_id": "MA120",
+    "title": "MA120 Final exam",
+    "due": "2026-12-14",
+    "weight": 50,
+    "is_exam": true
+  },
+  {
+    "id": "A-UX150-1",
+    "course_id": "UX150",
+    "title": "UX150 Assignment 1",
+    "due": "2026-10-05",
+    "weight": 20,
+    "is_exam": false
+  },
+  {
+    "id": "A-UX150-2",
+    "course_id": "UX150",
+    "title": "UX150 Assignment 2",
+    "due": "2026-11-09",
+    "weight": 30,
+    "is_exam": false
+  },
+  {
+    "id": "A-UX150-FINAL",
+    "course_id": "UX150",
+    "title": "UX150 Final exam",
+    "due": "2026-12-14",
+    "weight": 50,
+    "is_exam": true
+  },
+  {
+    "id": "A-BI130-1",
+    "course_id": "BI130",
+    "title": "BI130 Assignment 1",
+    "due": "2026-10-05",
+    "weight": 20,
+    "is_exam": false
+  },
+  {
+    "id": "A-BI130-2",
+    "course_id": "BI130",
+    "title": "BI130 Assignment 2",
+    "due": "2026-11-09",
+    "weight": 30,
+    "is_exam": false
+  },
+  {
+    "id": "A-BI130-FINAL",
+    "course_id": "BI130",
+    "title": "BI130 Final exam",
+    "due": "2026-12-14",
+    "weight": 50,
+    "is_exam": true
+  }
+]

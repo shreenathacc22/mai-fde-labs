@@ -24,3 +24,13 @@ reports/
 
 # estate writes (layered over the generated files; reset() clears it)
 estate/data/state.json
+
+# edtech product writes (layered over edtech/data; campus.reset() clears it)
+edtech/data/state.json
+edtech/data/audit.jsonl
+
+# local secrets: no env file is ever committed except the example; no key files
+.env*
+!.env.example
+*.pem
+*.key

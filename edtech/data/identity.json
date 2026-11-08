@@ -1,0 +1,82 @@
+[
+  {
+    "id": "student.aisha",
+    "name": "Aisha Khan",
+    "role": "student",
+    "student_id": "S-1001",
+    "courses": [],
+    "can_see_pii": false,
+    "title": "Student"
+  },
+  {
+    "id": "student.leo",
+    "name": "Leo Marsh",
+    "role": "student",
+    "student_id": "S-1002",
+    "courses": [],
+    "can_see_pii": false,
+    "title": "Student"
+  },
+  {
+    "id": "student.noor",
+    "name": "Noor Haddad",
+    "role": "student",
+    "student_id": "S-1003",
+    "courses": [],
+    "can_see_pii": false,
+    "title": "Student (under 18)"
+  },
+  {
+    "id": "tutor.lena",
+    "name": "Lena Brandt",
+    "role": "tutor",
+    "courses": [
+      "PY101",
+      "DS201"
+    ],
+    "can_see_pii": false,
+    "title": "Tutor, Python and Data Science"
+  },
+  {
+    "id": "tutor.omar",
+    "name": "Omar Sato",
+    "role": "tutor",
+    "courses": [
+      "WR110",
+      "MA120"
+    ],
+    "can_see_pii": false,
+    "title": "Tutor, Writing and Statistics"
+  },
+  {
+    "id": "tutor.kai",
+    "name": "Kai Mensah",
+    "role": "tutor",
+    "courses": [
+      "UX150",
+      "BI130"
+    ],
+    "can_see_pii": false,
+    "title": "Tutor, UX and Business Analytics"
+  },
+  {
+    "id": "advisor.ben",
+    "name": "Ben Okoro",
+    "role": "viewer",
+    "courses": [
+      "all"
+    ],
+    "can_see_pii": false,
+    "title": "Academic advisor (read only)"
+  },
+  {
+    "id": "registrar.ana",
+    "name": "Ana Ferreira",
+    "role": "registrar",
+    "courses": [
+      "all"
+    ],
+    "can_see_pii": true,
+    "title": "Registrar (grades, records, refunds)"
+  }
+]
