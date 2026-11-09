@@ -20,7 +20,10 @@ stock_traces.jsonl
 stock_rag/predictions.jsonl
 estate/data/audit.jsonl
 .estate_state/
-reports/
+# reports/ holds the six deliverables and the check results, so on this branch it is
+# tracked. Kept local: raw run records, and setup notes with machine paths.
+reports/*.jsonl
+reports/*-session.md
 
 # estate writes (layered over the generated files; reset() clears it)
 estate/data/state.json

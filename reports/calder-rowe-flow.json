@@ -1,0 +1,78 @@
+{
+  "n": "1",
+  "title": "HelpTrack Context Triage",
+  "one_liner": "Prepare region-scoped customer, order, manufacturer, and policy context as a gated internal ticket note.",
+  "nodes": [
+    {
+      "kind": "trigger",
+      "lines": [
+        "New HelpTrack",
+        "ticket"
+      ],
+      "tool": "HelpTrack"
+    },
+    {
+      "kind": "step",
+      "lines": [
+        "Enforce region",
+        "and SSO scope"
+      ],
+      "tool": "HelpTrack roles + SSO"
+    },
+    {
+      "kind": "step",
+      "lines": [
+        "Fetch linked",
+        "record candidates"
+      ],
+      "tool": "Approved data sources (TBD)",
+      "edge": "fixed queries only"
+    },
+    {
+      "kind": "model",
+      "lines": [
+        "Match and select",
+        "relevant context"
+      ],
+      "tool": "Context selection model"
+    },
+    {
+      "kind": "step",
+      "lines": [
+        "Assemble cited",
+        "context packet"
+      ],
+      "tool": "HelpTrack formatter"
+    },
+    {
+      "kind": "write",
+      "lines": [
+        "Queue internal",
+        "context note"
+      ],
+      "tool": "HelpTrack add_comment",
+      "edge": "after approval"
+    },
+    {
+      "kind": "end",
+      "lines": [
+        "Agent reviews",
+        "and writes reply"
+      ],
+      "tool": "HelpTrack"
+    }
+  ],
+  "gate": {
+    "at": 5,
+    "label": [
+      "Owner approves",
+      "internal context"
+    ],
+    "who": [
+      "Tomas, Keisha,",
+      "or Bill"
+    ],
+    "back_to": 6
+  },
+  "rule": "The model never sends a response, changes ticket fields or access, or lets ticket text choose a tool."
+}
