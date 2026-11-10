@@ -47,6 +47,7 @@ import time
 from _estate import RISK, _audit                       # the register, and the one audit log
 from _kit import MODEL, _traced, meter, say
 from _mcp_client import call, estate_session, openai_tools
+from _retrieval import LIBRARY_QUERY, brief, rank, text_query   # the desk's map in code (labs/_retrieval.py)
 
 MAX_ROUNDS = 8                 # a first-response draft needs 4–6 tool calls; 8 is already a smell
 RESULT_CLIP = 240              # chars of each tool result kept in the trace the labs print
@@ -92,8 +93,10 @@ def default_system(user_id: str, role: str) -> str:
     return (
         f"You are the first-response assistant on Calder & Rowe's service desk, acting as {user_id}.\n"
         "For the one ticket you are given: read it (get_ticket); find the order and the customer "
-        "(get_order, list_orders, get_customer); find the policy that governs it (search_policies, "
-        "then get_policy if you need the full text); decide category and priority; write the reply "
+        "(get_order, list_orders, get_customer); find the policy that governs it: call "
+        "suggest_policies first (it applies the desk's own map and returns the likely documents with "
+        "the reason), then get_policy to read the one you choose, and search_policies only if none "
+        "of the suggestions fits; decide category and priority; write the reply "
         "to the customer as an internal comment (add_comment, internal=true) so a person reviews it "
         "before it is sent; set category and priority with set_ticket. Do not change status — a "
         "first response does not close a ticket.\n" + admin +
@@ -178,6 +181,45 @@ def _parse_final(text: str) -> dict:
     return {"draft": text.strip()}
 
 
+SUGGEST_POLICIES_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "suggest_policies",
+        "description": ("The desk's own map from ticket to governing policy document, applied in code: "
+                        "reads the ticket, its order and customer, and returns up to three likely documents "
+                        "(doc_id, title, why) in the order the desk would consider them. Read-only, scoped to "
+                        "you. Call get_policy on the one you choose. Risk: read."),
+        "parameters": {"type": "object", "properties": {"ticket_id": {"type": "string"}}, "required": ["ticket_id"]},
+    },
+}
+
+
+async def suggest_policies(session, args: dict) -> str:
+    """suggest_policies, run here: four reads through the customer's server as the
+    acting user (so scope holds), then labs/_retrieval.rank() over the results."""
+    def loads(s: str):
+        try:
+            return json.loads(s)
+        except (json.JSONDecodeError, TypeError):
+            return None
+    raw = await call(session, "get_ticket", {"ticket_id": str(args.get("ticket_id", ""))})
+    ticket = loads(raw)
+    if not isinstance(ticket, dict):                            # denied or not found: the server's own words, nothing suggested
+        return "ERROR: suggest_policies needs a ticket you can read; get_ticket said: " + raw[:200]
+    order = loads(await call(session, "get_order", {"order_id": ticket["order_id"]})) if ticket.get("order_id") else None
+    customer = loads(await call(session, "get_customer", {"customer_id": ticket.get("customer_id", "")}))
+    library = loads(await call(session, "search_policies", {"query": LIBRARY_QUERY, "k": 60})) or []
+    hits = loads(await call(session, "search_policies", {"query": text_query(ticket, order if isinstance(order, dict) else None), "k": 10})) or []
+    cands = rank(ticket, order if isinstance(order, dict) else None, customer if isinstance(customer, dict) else None,
+                 library, hits, k=3)
+    return json.dumps({"ticket_id": ticket["id"], "candidates": brief(cands),
+                       "note": "suggestions from the desk's map, in order; read the one you choose with get_policy"},
+                      ensure_ascii=False)
+
+
+LOCAL_TOOLS = {"suggest_policies": suggest_policies}       # read-only helpers that never reach the server as a write
+
+
 async def run_wedge(user_id: str, ticket_id: str, *, cli, system_prompt: str | None = None,
                     autonomy: str = "approve", approver=None, extra_tools: list[dict] | None = None,
                     label: str = "wedge") -> dict:
@@ -192,7 +234,7 @@ async def run_wedge(user_id: str, ticket_id: str, *, cli, system_prompt: str | N
     final: dict = {}
     async with estate_session(user_id) as session:
         me = json.loads(await call(session, "whoami", {}))
-        tools = openai_tools((await session.list_tools()).tools) + list(extra_tools or [])
+        tools = openai_tools((await session.list_tools()).tools) + [SUGGEST_POLICIES_TOOL] + list(extra_tools or [])
         messages = [{"role": "system", "content": system_prompt or default_system(user_id, me["role"])},
                     {"role": "user", "content": f"Ticket {ticket_id}. Do the first-response job and end with the JSON."}]
         for rounds in range(1, MAX_ROUNDS + 1):
@@ -214,7 +256,9 @@ async def run_wedge(user_id: str, ticket_id: str, *, cli, system_prompt: str | N
                 except json.JSONDecodeError:
                     args = {"_raw": t.function.arguments}
                 # ── the gate: decided here, before anything reaches the server ──
-                if autonomy == "suggest" and risk_of(name) != "read":
+                if name in LOCAL_TOOLS:                       # a read-only helper composed of reads; nothing to gate
+                    result = await LOCAL_TOOLS[name](session, args)
+                elif autonomy == "suggest" and risk_of(name) != "read":
                     held.append({"tool": name, "args": args})
                     _audit(user_id, name, args, allowed=False, reason="held: autonomy=suggest")
                     result = SUGGEST_HOLD.format(tool=name)

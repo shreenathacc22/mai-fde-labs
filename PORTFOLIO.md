@@ -4,7 +4,7 @@ My work from the Modern AI Pro **Forward Deployed Engineer** weekend (Oct 30 –
 
 This branch is a fork of the course lab kit by Dr. Balaji Viswanathan ([balajivis/mai-fde-labs](https://github.com/balajivis/mai-fde-labs)). The kit, the simulated customer, the golden set and the lab scripts are his. What I added is listed below, and [`README.md`](./README.md) is the kit's own.
 
-**Where it stands:** all six deliverables are written; none is signed, because the customer is simulated. By its own go-live gate the system is **not ready for go-live**: safety holds at 100%, but triage and retrieval are well under target. Two measurements are still owed and are listed under [What is still open](#what-is-still-open).
+**Where it stands:** all six deliverables are written; none is signed, because the customer is simulated. By its own go-live gate the system is **not ready for go-live**: safety holds at 100%, but triage and retrieval are well under target in the contract. The retrieval step has since been rebuilt and measures 93% on its own (2026-11-09); the contract is re-run once a fresh key is available. Two measurements are still owed and are listed under [What is still open](#what-is-still-open).
 
 ## What I built
 
@@ -15,6 +15,7 @@ This branch is a fork of the course lab kit by Dr. Balaji Viswanathan ([balajivi
 | Suggestions on a lookup miss | `labs/lab_2b_multiagent.py` | A mistyped ticket or order id comes back with the closest ids the user is allowed to see, instead of a dead end |
 | The lab 2b checks as a command | [`scripts/check_lab2b.py`](./scripts/check_lab2b.py) | Runs the routing, gate and hop-budget checks from the lab guide and writes the result |
 | Golden cases through the chat | [`scripts/eval_lab2b.py`](./scripts/eval_lab2b.py), [`scripts/selftest_eval_lab2b.py`](./scripts/selftest_eval_lab2b.py) | Scores the multi-agent chat on the frozen golden set the same way the baseline is scored; the self-test runs it offline with a scripted model |
+| The governing-policy step | [`labs/_retrieval.py`](./labs/_retrieval.py), [`scripts/measure_retrieval.py`](./scripts/measure_retrieval.py), [`scripts/selftest_retrieval.py`](./scripts/selftest_retrieval.py) | The desk's ticket-to-document map in code, offered to the wedge and the lab 2b policy specialist as a read-only `suggest_policies` tool; takes retrieval from 50% to 93% on the golden cases, measured without a model |
 | A second product on the same stack | [`edtech/`](./edtech) | A student help desk for a fictional online school: scope enforced in the school's system, grade changes gated on a person, a role-scoped dashboard, 30 checks |
 
 ## The six deliverables
@@ -41,6 +42,7 @@ The flow on one sheet: [`reports/calder-rowe-flow.svg`](./reports/calder-rowe-fl
 | Approval step | with nobody to approve, the credit was declined and logged | lab 5 |
 | Routing | 5 of 5 questions reached the intended specialist, 3 runs out of 3 | [`reports/lab2b-checks.md`](./reports/lab2b-checks.md) |
 | Approval gate | an internal note runs; closing a ticket stops; no credit tool runs | same |
+| Retrieval (governing document in top 3) | 50% → **93.3%** on the 30 golden retrieval cases; 34% → 94% on all 559 nameable tickets | [`reports/retrieval-measurement.md`](./reports/retrieval-measurement.md), 2026-11-09 |
 | edtech product | 30 of 30 deterministic checks pass | `python edtech/checks.py` |
 
 ## The architecture on one page
@@ -69,6 +71,8 @@ cp .env.example .env                      # then paste your own key; .env is nev
 
 python scripts/check_lab2b.py --offline   # gate rules, no key needed
 python scripts/selftest_eval_lab2b.py     # eval plumbing, no key needed
+python scripts/selftest_retrieval.py      # the governing-policy step through MCP, no key needed
+python scripts/measure_retrieval.py       # retrieval before/after on the golden set, no key needed
 python edtech/checks.py                   # 30 checks, no key needed
 python scripts/check_lab2b.py             # all three lab 2b checks (needs a key)
 python scripts/eval_lab2b.py              # ten golden cases through the chat (needs a key)
@@ -79,7 +83,7 @@ python scripts/eval_lab2b.py              # ten golden cases through the chat (n
 - **The two-hop check is not demonstrated.** The lab guide's question names order O-27612, which does not exist in this estate, so the chat correctly answered "not found". The check now asks about a real order, but the class practice key ran out of tokens before the rerun.
 - **`scripts/eval_lab2b.py` has not been run against the model**, for the same reason. Its plumbing passes the offline self-test; it has produced no scores yet.
 - **The judge is not calibrated.** Its last run stopped at 14 of 40 cases, all triage. Trust the structural scores until it is rerun.
-- **Triage (31.7%) and retrieval (50%) are baseline numbers**, well under the proposed 75% and 90%. Most triage misses are the policy field, so retrieval is the first fix.
+- **Triage (31.7%) and retrieval (50%) in the contract are still the baseline numbers.** The retrieval step is rebuilt and measured at 93% on its own, but the contract only moves when the wedge is re-run on the frozen set (`python labs/lab_3_eval_contract.py --live --n 180` is the kit's way; it needs a key). Whether triage follows is the thing to find out.
 - **Only one red-team attack of my own** is in the security pack, beyond the nine planted ones.
 - **U.S.-only data residency is unconfirmed** for the model endpoint.
 - **Not deployed.** The container builds are written but were not built or run for this branch.

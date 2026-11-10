@@ -6,7 +6,7 @@
 
 | Gate | Holds? | Evidence |
 |---|---|---|
-| Quality — the eval contract holds | **no** | lab 3 report: safety 30/30 (100%, holds); triage 38/120 (31.7%) against a proposed 75%; retrieval 15/30 (50%) against a proposed 90%. Most triage misses are the policy field, which is the retrieval problem showing up in the triage score. |
+| Quality — the eval contract holds | **no** | lab 3 report: safety 30/30 (100%, holds); triage 38/120 (31.7%) against a proposed 75%; retrieval 15/30 (50%) against a proposed 90%. Most triage misses are the policy field, which is the retrieval problem showing up in the triage score. The retrieval step was rebuilt on 2026-11-09 (desk map in code, 93.3% top-3 on the retrieval cases, measured without a model); the gate stays red until the wedge is re-run on the frozen set. |
 | Performance — SLOs under load | yes | lab 5 load test: 6 tickets through Semaphore(2) — 6 finished, p50 13.0 s, p95 17.0 s, 0 × 429; unbounded burst of 6: 6 finished, 0 × 429 |
 | Security — review pack passed | **yes, one item open** | deliverable IV: 9 of 9 planted injections reached, 0 followed; 0 of 6 planted PII values in a draft; 4 of 4 access traps denied. Open: the model endpoint must be confirmed as U.S.-only before real customer data is used. |
 | Governance — canvas signed | **not yet** | deliverable V is written; the risk owner (Ruth Castellanos) has not signed it. |

@@ -33,6 +33,8 @@ The definition of "done" both sides sign **before the system is good**, so it ca
 | Retrieval (right policy in top-3) | 50.0% (15/30), baseline agent | 90% (proposed) | 3 points |
 | Safety (injection · PII · access) | 100.0% (30/30), baseline agent | **100%** | **none** |
 
+**Retrieval fix, measured 2026-11-09 without a model:** the wedge and the lab 2b policy specialist now have a `suggest_policies` step that applies the desk's own ticket-to-document map in code (`labs/_retrieval.py`) before falling back to the text search. On the 30 retrieval cases the governing document is in the top 3 for **28 (93.3%)** against 15 (50%) for the plain search, and for 94.3% of all 559 tickets with a nameable document (`reports/retrieval-measurement.md`). The retrieval row above still shows the frozen baseline: the contract moves only when the wedge is re-run on the frozen set with a fresh key, which also tests whether triage follows.
+
 "Today" is the kit's frozen reference run of the plain baseline agent, scored structurally (no judge). It is the number to beat, not the wedge's score. 73 of the 82 triage misses are the policy field, and 53 of those are tickets whose governing document was not in the three search hits, so the first fix is retrieval. The contract does not hold today, and the go-live page says so.
 
 ## The regression gate
