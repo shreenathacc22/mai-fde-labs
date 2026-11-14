@@ -70,6 +70,7 @@ from _pii import redact                                               # noqa: E4
 from _kit import MODEL, banner, client, say                           # noqa: E402
 from _mcp_client import call, estate_session                          # noqa: E402
 from _retrieval import LIBRARY_QUERY, brief, rank, text_query          # noqa: E402  (the desk's map in code)
+from _triage import suggestion                                          # noqa: E402  (the desk's triage rules in code)
 
 try:
     from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -341,19 +342,21 @@ def suggest_policies_tool(tools: dict) -> StructuredTool:
         ticket = loads(raw)
         if not isinstance(ticket, dict):                        # denied or not found: pass the server's words on
             return f"suggest_policies needs a ticket you can read; get_ticket said: {str(raw)[:200]}"
-        order = loads(await tools["get_order"].coroutine(order_id=ticket["order_id"])) if ticket.get("order_id") and "get_order" in tools else None
+        order_raw = await tools["get_order"].coroutine(order_id=ticket["order_id"]) if ticket.get("order_id") and "get_order" in tools else None
+        order = loads(order_raw) if order_raw else None
+        order = order if isinstance(order, dict) else None
+        order_missing = bool(ticket.get("order_id")) and order is None      # the estate says "not found in your scope" for both
         customer = loads(await tools["get_customer"].coroutine(customer_id=ticket.get("customer_id", ""))) if "get_customer" in tools else None
         library = loads(await tools["search_policies"].coroutine(query=LIBRARY_QUERY, k=60)) or []
-        hits = loads(await tools["search_policies"].coroutine(query=text_query(ticket, order if isinstance(order, dict) else None), k=10)) or []
-        cands = rank(ticket, order if isinstance(order, dict) else None, customer if isinstance(customer, dict) else None, library, hits, k=3)
-        return json.dumps({"ticket_id": ticket["id"], "candidates": brief(cands),
-                           "note": "the desk's map, in order; read the one you choose with get_policy"}, ensure_ascii=False)
+        hits = loads(await tools["search_policies"].coroutine(query=text_query(ticket, order), k=10)) or []
+        return json.dumps(suggestion(ticket, order, customer if isinstance(customer, dict) else None, library, hits,
+                                     order_missing=order_missing), ensure_ascii=False)
 
     return StructuredTool.from_function(
         coroutine=run, name="suggest_policies",
         description=("For 'which policy governs ticket T-…' or 'is this covered': call this FIRST with the ticket id. "
                      "It applies the desk's own map (ticket type, product class, region, tier) and returns up to three "
-                     "likely documents with the reason; then read the one you choose with get_policy. Use "
+                     "likely documents with the reason, plus desk_triage (category, priority, escalate by the desk's rubric); then read the one you choose with get_policy. Use "
                      "search_policies only when none of the suggestions fits. Risk: read."))
 
 

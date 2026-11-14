@@ -47,7 +47,8 @@ import time
 from _estate import RISK, _audit                       # the register, and the one audit log
 from _kit import MODEL, _traced, meter, say
 from _mcp_client import call, estate_session, openai_tools
-from _retrieval import LIBRARY_QUERY, brief, rank, text_query   # the desk's map in code (labs/_retrieval.py)
+from _retrieval import LIBRARY_QUERY, text_query   # the desk's map in code (labs/_retrieval.py)
+from _triage import arrived_text, suggestion       # the desk's triage rules in code (labs/_triage.py)
 
 MAX_ROUNDS = 8                 # a first-response draft needs 4–6 tool calls; 8 is already a smell
 RESULT_CLIP = 240              # chars of each tool result kept in the trace the labs print
@@ -96,7 +97,13 @@ def default_system(user_id: str, role: str) -> str:
         "(get_order, list_orders, get_customer); find the policy that governs it: call "
         "suggest_policies first (it applies the desk's own map and returns the likely documents with "
         "the reason), then get_policy to read the one you choose, and search_policies only if none "
-        "of the suggestions fits; decide category and priority; write the reply "
+        "of the suggestions fits. Category and priority follow the desk's rubric, which suggest_policies applies "
+        "for you (desk_triage): take its category, priority and escalate unless the customer's words clearly say "
+        "the category is something else, and then take the priority for your category from "
+        "priority_by_category. The desk's priorities, for reference: urgent = a warranty fault on reach-in "
+        "refrigeration, walk-ins, ice machines or hoods; high = any other warranty fault, or a delivery query on "
+        "an order not yet delivered; normal = delivery (delivered), installation, parts, billing, returns; "
+        "low = training, other. Do not raise a priority because the customer sounds upset. Write the reply "
         "to the customer as an internal comment (add_comment, internal=true) so a person reviews it "
         "before it is sent; set category and priority with set_ticket. Do not change status — a "
         "first response does not close a ticket.\n" + admin +
@@ -181,6 +188,29 @@ def _parse_final(text: str) -> dict:
     return {"draft": text.strip()}
 
 
+def _from_writes(tool_calls: list) -> dict:
+    """When the model's last message is empty or not JSON, the triage it gave is
+    still on the ticket: the last accepted set_ticket (category, priority), the last
+    add_comment (the draft), the last get_policy (the document) and the escalate value
+    desk_triage handed it. Used only to fill fields the final answer left empty."""
+    out: dict = {}
+    for name, args, result in tool_calls:
+        if str(result).startswith(("DENIED:", "ERROR:")) or "held" in str(result)[:80].lower():
+            continue
+        if name == "set_ticket":
+            out.update({k: args[k] for k in ("category", "priority") if args.get(k)})
+        elif name == "add_comment" and args.get("body"):
+            out["draft"] = args["body"]
+        elif name == "get_policy" and args.get("doc_id"):
+            out["policy_doc_id"] = args["doc_id"]
+        elif name == "suggest_policies":
+            try:
+                out["escalate"] = bool(json.loads(result)["desk_triage"]["escalate"])
+            except (json.JSONDecodeError, KeyError, TypeError):
+                pass
+    return out
+
+
 SUGGEST_POLICIES_TOOL = {
     "type": "function",
     "function": {
@@ -206,15 +236,15 @@ async def suggest_policies(session, args: dict) -> str:
     ticket = loads(raw)
     if not isinstance(ticket, dict):                            # denied or not found: the server's own words, nothing suggested
         return "ERROR: suggest_policies needs a ticket you can read; get_ticket said: " + raw[:200]
-    order = loads(await call(session, "get_order", {"order_id": ticket["order_id"]})) if ticket.get("order_id") else None
+    order_raw = await call(session, "get_order", {"order_id": ticket["order_id"]}) if ticket.get("order_id") else None
+    order = loads(order_raw) if order_raw else None
+    order = order if isinstance(order, dict) else None
+    order_missing = bool(ticket.get("order_id")) and order is None      # the estate says "not found in your scope" for both
     customer = loads(await call(session, "get_customer", {"customer_id": ticket.get("customer_id", "")}))
     library = loads(await call(session, "search_policies", {"query": LIBRARY_QUERY, "k": 60})) or []
-    hits = loads(await call(session, "search_policies", {"query": text_query(ticket, order if isinstance(order, dict) else None), "k": 10})) or []
-    cands = rank(ticket, order if isinstance(order, dict) else None, customer if isinstance(customer, dict) else None,
-                 library, hits, k=3)
-    return json.dumps({"ticket_id": ticket["id"], "candidates": brief(cands),
-                       "note": "suggestions from the desk's map, in order; read the one you choose with get_policy"},
-                      ensure_ascii=False)
+    hits = loads(await call(session, "search_policies", {"query": text_query(ticket, order), "k": 10})) or []
+    return json.dumps(suggestion(ticket, order, customer if isinstance(customer, dict) else None, library, hits,
+                                 order_missing=order_missing), ensure_ascii=False)
 
 
 LOCAL_TOOLS = {"suggest_policies": suggest_policies}       # read-only helpers that never reach the server as a write
@@ -274,6 +304,8 @@ async def run_wedge(user_id: str, ticket_id: str, *, cli, system_prompt: str | N
                         result = QUEUE_DENIAL.format(tool=name)
                 else:
                     result = await call(session, name, args)
+                    if name in ("get_ticket", "list_tickets"):   # first response sees a ticket as it arrived
+                        result = arrived_text(result)
                     if autonomy == "notify" and risk_of(name) == "destructive":
                         notified.append({"tool": name, "args": args, "result": result[:RESULT_CLIP]})
                 if result.startswith("DENIED:"):
@@ -286,6 +318,13 @@ async def run_wedge(user_id: str, ticket_id: str, *, cli, system_prompt: str | N
         else:
             rounds = MAX_ROUNDS
             final = {"draft": "", "reason": f"stopped after {MAX_ROUNDS} rounds without a final answer"}
+        if not final.get("category"):                         # the answer is missing; what was written is not
+            wrote = _from_writes(tool_calls)
+            if wrote.get("category"):
+                filled = sorted(k for k in wrote if not final.get(k))
+                final = {**final, **{k: wrote[k] for k in filled}}
+                final["reason"] = (str(final.get("reason") or "") + " [final message was empty or not JSON; "
+                                   + ", ".join(filled) + " taken from the wedge's own writes]").strip()
     return {"user": user_id, "ticket_id": ticket_id, "autonomy": autonomy,
             "category": final.get("category"), "priority": final.get("priority"),
             "policy_doc_id": final.get("policy_doc_id"), "escalate": bool(final.get("escalate", False)),
