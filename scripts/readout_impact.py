@@ -104,7 +104,8 @@ def main() -> int:
     base = {r["id"]: (r.get("output"), r.get("hits") or []) for r in B.load_jsonl(ROOT / "golden" / "baseline_run.jsonl")}
     runs.append(table("Baseline model, frozen run, all 120", base))
     for label, p in (("Wedge before the triage rules (30-case sample)", ROOT / "reports" / "wedge-eval-run-before-triage-rules.jsonl"),
-                     ("Wedge with the triage rules (30-case sample)", ROOT / "reports" / "wedge-eval-run.jsonl")):
+                     ("Wedge with the triage rules (30-case sample)", ROOT / "reports" / "wedge-eval-run.jsonl"),
+                     ("Wedge with the triage rules (30 more triage cases)", ROOT / "reports" / "wedge-eval-extension-run.jsonl")):
         if p.exists():
             outs = {}
             for r in B.load_jsonl(p):

@@ -4,7 +4,7 @@ My work from the Modern AI Pro **Forward Deployed Engineer** weekend (Oct 30 –
 
 This branch is a fork of the course lab kit by Dr. Balaji Viswanathan ([balajivis/mai-fde-labs](https://github.com/balajivis/mai-fde-labs)). The kit, the simulated customer, the golden set and the lab scripts are his. What I added is listed below, and [`README.md`](./README.md) is the kit's own.
 
-**Where it stands:** all six deliverables are written; none is signed, because the customer is simulated. By its own go-live gate the system is **not ready for go-live**: safety holds at 100%, but triage and retrieval are well under target in the contract. The retrieval step has since been rebuilt and measures 93% on its own; on a 30-case sample the wedge doubles the baseline's triage (6/20 vs 3/20) with safety 5/5 (2026-11-14). What still fails triage is priority, not retrieval. Two measurements are still owed and are listed under [What is still open](#what-is-still-open).
+**Where it stands:** all six deliverables are written; none is signed, because the customer is simulated. Both engineering gaps the eval contract found are closed in code and measured: the governing document is found 93% of the time (was 50%), and the desk's triage rules alone get 92.5% of the frozen triage cases right. The wedge with both scores **triage 40/50 (80%) against the baseline's 15/50 on the same cases**, above the proposed 75%, with safety 5/5 (2026-11-14). By its own gate it is still **not ready for go-live**: the contract's number needs all 120 triage cases, the model endpoint's U.S. residency is unconfirmed, and nobody can sign for a simulated customer. The chat runs on AWS EC2 for demonstration. What is open is listed under [What is still open](#what-is-still-open).
 
 ## What I built
 
@@ -15,6 +15,9 @@ This branch is a fork of the course lab kit by Dr. Balaji Viswanathan ([balajivi
 | Suggestions on a lookup miss | `labs/lab_2b_multiagent.py` | A mistyped ticket or order id comes back with the closest ids the user is allowed to see, instead of a dead end |
 | The lab 2b checks as a command | [`scripts/check_lab2b.py`](./scripts/check_lab2b.py) | Runs the routing, gate and hop-budget checks from the lab guide and writes the result |
 | Golden cases through the chat | [`scripts/eval_lab2b.py`](./scripts/eval_lab2b.py), [`scripts/selftest_eval_lab2b.py`](./scripts/selftest_eval_lab2b.py) | Scores the multi-agent chat on the frozen golden set the same way the baseline is scored; the self-test runs it offline with a scripted model |
+| The desk's triage rules | [`labs/_triage.py`](./labs/_triage.py), [`scripts/measure_triage.py`](./scripts/measure_triage.py), [`scripts/selftest_triage.py`](./scripts/selftest_triage.py) | Category from the ticket as it arrived, then priority, escalation and the governing document by the desk's rubric — offered to the model, enforced at the write and in the answer, every override recorded. 111/120 on the frozen triage cases with no model; 384/390 on held-out tickets |
+| Readout numbers | [`scripts/readout_impact.py`](./scripts/readout_impact.py) | The triage score under each labeller reading, so the readout decides with numbers ([decisions](./reports/readout-decisions.md)) |
+| A deploy that keeps secrets out | [`deploy/ec2_update.sh`](./deploy/ec2_update.sh) | Builds `linux/amd64` from a commit, rolls the chat on EC2 with the key over SSH stdin, smoke-tests, rolls back on failure |
 | The governing-policy step | [`labs/_retrieval.py`](./labs/_retrieval.py), [`scripts/measure_retrieval.py`](./scripts/measure_retrieval.py), [`scripts/selftest_retrieval.py`](./scripts/selftest_retrieval.py) | The desk's ticket-to-document map in code, offered to the wedge and the lab 2b policy specialist as a read-only `suggest_policies` tool; takes retrieval from 50% to 93% on the golden cases, measured without a model |
 | A second product on the same stack | [`edtech/`](./edtech) | A student help desk for a fictional online school: scope enforced in the school's system, grade changes gated on a person, a role-scoped dashboard, 30 checks |
 
@@ -24,10 +27,10 @@ This branch is a fork of the course lab kit by Dr. Balaji Viswanathan ([balajivi
 |---|---|---|
 | I | [Engagement Brief](./reports/engagement-brief.md) | The lookup work, not the writing, is what slows the desk. ROI is $46,000 a year against $36,000, which is over the CFO's $25,000 signing limit |
 | II | [Integration Map](./reports/integration-map.md) | Eight layers, each marked build, connect or never, with a proposed owner on the customer's side |
-| III | [Eval Contract](./reports/eval-contract.md) | 180 frozen cases. Baseline: triage 31.7%, retrieval 50%, safety 100%. The judge is not calibrated yet |
-| IV | [Security Review Pack](./reports/security-review-pack.md) | 9 of 9 planted injections reached, 0 followed; 0 of 6 planted PII values leaked; 4 of 4 access traps denied |
+| III | [Eval Contract](./reports/eval-contract.md) | 180 frozen cases. Baseline: triage 31.7%, retrieval 50%, safety 100%. Wedge: triage 80% on 50 cases; judge calibrated on 40 (κ 1.0 with A, 0.48 with B) |
+| IV | [Security Review Pack](./reports/security-review-pack.md) | 9 of 9 planted injections reached, 0 forbidden actions; 0 of 6 planted PII values leaked; 4 of 4 access traps denied; residency evidence in [data-residency](./reports/data-residency.md) |
 | V | [Governance Canvas](./reports/governance-canvas.md) | Who approves what, the autonomy ladder per action, the incident path |
-| VI | [Go-live & Handover](./reports/go-live-and-handover.md) | Two of four gates do not hold; the recommendation is a suggest-only pilot |
+| VI | [Go-live & Handover](./reports/go-live-and-handover.md) | Not ready for go-live; ready for a pilot on the `approve` rung on the simulated estate. Quality on track (80% on 50 cases), residency unconfirmed, canvas unsigned |
 
 The flow on one sheet: [`reports/calder-rowe-flow.svg`](./reports/calder-rowe-flow.svg).
 
@@ -44,11 +47,14 @@ The flow on one sheet: [`reports/calder-rowe-flow.svg`](./reports/calder-rowe-fl
 | Approval gate | an internal note runs; closing a ticket stops; no credit tool runs (passed 3 of 4 runs; the diagnostics for the odd one are in the report) | same |
 | Two-hop question | orders → policy → answer in one turn, a real warranty answer, **12,931 tokens** | same |
 | Retrieval (governing document in top 3) | 50% → **93.3%** on the 30 golden retrieval cases; 34% → 94% on all 559 nameable tickets | [`reports/retrieval-measurement.md`](./reports/retrieval-measurement.md), 2026-11-09 |
-| The wedge on the golden set (30-case sample) | triage **6/20 vs the baseline's 3/20** on the same cases; retrieval 4/5 = baseline; safety 5/5; 18k tokens per case | [`reports/wedge-eval.md`](./reports/wedge-eval.md), 2026-11-14 |
+| The desk's triage rules, no model | **111/120 (92.5%)** on the frozen triage cases; 384/390 agreement with the desk's category on held-out tickets | [`reports/triage-measurement.md`](./reports/triage-measurement.md), 2026-11-14 |
+| The wedge on the golden set | triage **40/50 (80%) vs the baseline's 15/50** on the same cases (two samples: 16/20 and 24/30); was 6/20 before the triage rules; retrieval 4/5 = baseline; safety 5/5; 18k tokens per case | [`reports/wedge-triage-summary.md`](./reports/wedge-triage-summary.md), 2026-11-14 |
+| Rule enforcement | the four cases the model got wrong for priority, escalation or document pass once the rubric is enforced (projected 44/50, not a full run) | [`reports/wedge-eval-enforcement-check.md`](./reports/wedge-eval-enforcement-check.md) |
 | Golden cases through the lab 2b chat (10 chosen cases) | 6/10 structural in each of two runs (not the same six: run-to-run variation); safety 4/4 both times; 19–24k tokens per case. The chat's hop budget of 3 ends 2 of 10 turns before the policy specialist, and the final JSON names no document in 2 more | [`reports/lab2b-eval.md`](./reports/lab2b-eval.md), [first run](./reports/lab2b-eval-first-run.md), 2026-11-14 |
 | Judge calibration | 40 cases: agrees with labeller A on all (κ 1.0), with B on 72.5% (κ 0.481), A–B themselves 72.5% on the sample | [`reports/eval-contract.md`](./reports/eval-contract.md), 2026-11-14 |
 | Security review, re-run with the retrieval step | 9/9 plants reached; 0/6 PII leaked; 4/4 traps denied; 0/3 red-team attacks succeeded; 1 plant judged "followed" on an `escalate: false` reading, no action taken | [`reports/security-review-pack.md`](./reports/security-review-pack.md), 2026-11-14 |
-| Container | `fde-chat` image built (415 MB, no secrets inside); refuses to start without `CHAT_SECRET`; page 200, API 401 without the secret | 2026-11-09 |
+| Container | `fde-chat` image built (no secrets inside); refuses to start without `CHAT_SECRET`; page 200, API 401 without the secret | 2026-11-09 |
+| On AWS | rolled to `2fffd00` on EC2 (us-east-1): page 200; API 401 without / with a wrong secret; one real turn 200; old container kept for rollback | `deploy/ec2_update.sh`, 2026-11-14 |
 | edtech product | 30 of 30 deterministic checks pass | `python edtech/checks.py` |
 
 ## The architecture on one page
@@ -79,6 +85,9 @@ python scripts/check_lab2b.py --offline   # gate rules, no key needed
 python scripts/selftest_eval_lab2b.py     # eval plumbing, no key needed
 python scripts/selftest_retrieval.py      # the governing-policy step through MCP, no key needed
 python scripts/measure_retrieval.py       # retrieval before/after on the golden set, no key needed
+python scripts/measure_triage.py          # the desk's triage rules on the golden set, no key needed
+python scripts/selftest_triage.py         # the triage rules through MCP, no key needed
+python scripts/readout_impact.py          # the score under each labeller reading, no key needed
 python edtech/checks.py                   # 30 checks, no key needed
 python scripts/check_lab2b.py             # all three lab 2b checks (needs a key)
 python scripts/eval_lab2b.py              # ten golden cases through the chat (needs a key)
@@ -86,9 +95,9 @@ python scripts/eval_lab2b.py              # ten golden cases through the chat (n
 
 ## What is still open
 
-- **Triage is 30% on the sample against a 75% target.** The wedge now sees the right document (retrieval 93% on its own); 11 of its 14 remaining triage misses on the sample are **priority** (high where the desk says normal, normal where it says low) and three are address-update tickets called billing where the golden set says other. Next fix: the rubric wording the wedge is given, then a full 180-case run (~4.8M tokens) to move the contract.
-- **The judge sides with labeller A.** κ 1.0 with A and 0.481 with B on 40 cases, where A and B agree on 72.5%; the cases they disagree on are a rule to settle at the readout (`golden/DISAGREEMENTS.md`), not a judge to trust there.
-- **One plant judged "followed" in the security review** (P-007): the wedge took no forbidden action but answered `escalate: false` on a ticket whose quoted text said "no human". Recorded as an open question for the readout.
-- **U.S.-only data residency is unconfirmed** for the model endpoint.
-- **Not deployed to AWS.** The container is built and smoke-tested locally; the ECR → App Runner steps in `docs/GRAPH.md` were not run (cost, and the customer's AWS login).
-- **The deliverables are unsigned**, because the customer is simulated; every owner named in them is a proposal.
+- **The contract's triage number needs all 120 triage cases.** 40/50 (80%) is two samples, with a 95% interval of 67–89%; the full run is ~2.2M tokens and needs a fresh key. The rubric enforcement added after the samples is checked case by case (4/4), not as a run.
+- **Readout decisions** (`reports/readout-decisions.md`): five labeller rules, with a recommendation and the score under each reading. The six remaining triage misses are all rule D1 ("category never set"); under B's reading the two samples score 45/50.
+- **P-007** is recommended as held: the rubric itself gives `escalate: false` for that ticket and no action was taken.
+- **U.S.-only data residency is unconfirmed** for the model endpoint (it answers as an Azure OpenAI deployment behind Cloudflare); the evidence and the question to send are in `reports/data-residency.md`.
+- **The AWS demo has no TLS**; it is held to one allow-listed address. App Runner is closed to this account.
+- **The deliverables are unsigned**, because the customer is simulated; every owner named in them is a proposal (checked against the estate's identity file).

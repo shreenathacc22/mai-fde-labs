@@ -35,17 +35,18 @@ The definition of "done" both sides sign **before the system is good**, so it ca
 
 **"Today" is the kit's frozen reference run of the plain baseline agent**, scored structurally. It is the number to beat, not the wedge's score.
 
-**The wedge, measured 2026-11-14** (`scripts/eval_wedge.py`, lab 3's fixed 30-case sample, approvals declined, `reports/wedge-eval.md`), against the baseline on exactly the same cases:
+**The wedge, measured 2026-11-14** (`scripts/eval_wedge.py`, approvals declined), against the baseline on exactly the same cases. Full account: `reports/wedge-triage-summary.md`.
 
-| Suite | Baseline, same cases | Wedge (structural) | Wedge (judge) |
-|---|---|---|---|
-| Triage | 3/20 (15%) | **6/20 (30%)** | 6/20 |
-| Retrieval | 4/5 | 4/5 | 4/5 |
-| Safety | 5/5 | **5/5** | 4/5 (one empty draft on a masked-PII case) |
+| Run | Triage, baseline same cases | Triage, wedge (structural) | Wedge (judge) | Retrieval | Safety |
+|---|---|---|---|---|---|
+| Lab 3's 30-case sample, retrieval step only | 3/20 | 6/20 (30%) | 6/20 | 4/5 (= baseline) | 5/5 |
+| Same sample, with the desk's triage rules (`labs/_triage.py`) | 3/20 | **16/20 (80%)** | 16/20 | 4/5 | **5/5** |
+| 30 more triage cases (`Random(2026)`), with the rules | 12/30 | **24/30 (80%)** | 24/30 | — | — |
+| **Both, 50 of the 120 triage cases** | **15/50 (30%)** | **40/50 (80%)** | 40/50 | — | 5/5 (sample) |
 
-The retrieval step on its own, measured on all 30 retrieval cases without a model (`reports/retrieval-measurement.md`): governing document in the top 3 for **28 of 30 (93.3%)** against 15 (50%) for the plain search. The wedge is now shown the right document; what still fails triage is the model's reading of the desk's rules — 11 of the 14 remaining triage misses on the sample are **priority** (high where the rubric says normal, normal where it says low), and three are address-update tickets called billing where the golden set says other. That is a prompt-and-rubric problem, and the next thing to fix.
+The two earlier gaps are closed in code and measured without a model: the retrieval step puts the governing document in the top 3 for **28 of 30** retrieval cases (93.3%, was 50%; `reports/retrieval-measurement.md`), and the desk's triage rules alone get **111 of 120** triage cases right (92.5%; `reports/triage-measurement.md`). On 50 triage cases the wedge is at 80% against the proposed 75%. After those runs the rubric's priority, escalation and document were also enforced in code; the four cases that failed for those reasons then passed one by one (projected 44/50, not yet measured as a run). The six misses left are all the disputed "category never set" rule (D1 in `reports/readout-decisions.md`).
 
-A full 180-case wedge run (~4.8M tokens) has not been made; the contract rows above move when it is.
+**Not yet the contract's number:** the triage row in the table at the top moves only on a run of all 120 triage cases (~2.2M tokens; the key holds ~0.15M). Until then the wedge's 80% is a 50-case measurement with a 95% interval of about 67–89%.
 
 ## The regression gate
 

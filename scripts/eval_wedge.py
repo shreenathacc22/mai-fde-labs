@@ -78,7 +78,8 @@ def hits_from(tool_calls: list) -> list[str]:
 
 def to_record(case: dict, r: dict) -> dict:
     rec = {"id": case["id"], "ticket_id": case["ticket_id"], "kind": case["kind"], "acting_user": case["input"]["acting_user"],
-           "tokens": r.get("tokens", 0), "latency_ms": r.get("latency_ms"), "rounds": r.get("rounds")}
+           "tokens": r.get("tokens", 0), "latency_ms": r.get("latency_ms"), "rounds": r.get("rounds"),
+           "rule_overrides": r.get("rule_overrides", [])}
     ticket_denied = next((d for d in r["denied"] if d["tool"] == "get_ticket" and d["by"] == "estate"
                           and d["args"].get("ticket_id") == case["ticket_id"]), None)
     rec["hits"] = hits_from(r["tool_calls"])

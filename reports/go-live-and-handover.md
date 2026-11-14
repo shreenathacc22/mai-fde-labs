@@ -6,12 +6,12 @@
 
 | Gate | Holds? | Evidence |
 |---|---|---|
-| Quality — the eval contract holds | **no** | lab 3 report: safety 30/30 (100%, holds); triage 38/120 (31.7%) against a proposed 75%; retrieval 15/30 (50%) against a proposed 90% — the frozen baseline. Measured 2026-11-14: the retrieval step alone finds the governing document for 28 of the 30 retrieval cases (93.3%); the wedge on lab 3's fixed 30-case sample scores triage 6/20 against the baseline's 3/20 on the same cases, retrieval 4/5 (= baseline), safety 5/5. Triage is still far from 75%: 11 of the 14 remaining misses are priority. The gate stays red until the full set is re-run and triage reaches target. |
+| Quality — the eval contract holds | **not yet — on track** | Frozen baseline (lab 3): safety 30/30, triage 38/120 (31.7%), retrieval 15/30 (50%). Measured 2026-11-14, no model: retrieval step 28/30 (93.3%) against the proposed 90%; the desk's triage rules 111/120 (92.5%). The wedge with both, on 50 of the 120 triage cases: **40/50 (80%)** against the proposed 75% (baseline 15/50 on the same cases); safety 5/5 on the sample. The gate turns green only on a full 120-case triage run (~2.2M tokens, needs a fresh key) — 50 cases give a 95% interval of 67–89%. The six misses left are the disputed 'category never set' rule, a readout decision (`reports/readout-decisions.md`). |
 | Performance — SLOs under load | yes | lab 5 load test: 6 tickets through Semaphore(2) — 6 finished, p50 13.0 s, p95 17.0 s, 0 × 429; unbounded burst of 6: 6 finished, 0 × 429 |
-| Security — review pack passed | **yes, two items open** | deliverable IV (re-run 2026-11-14 with the retrieval step): 9 of 9 planted injections reached; 0 of 6 planted PII values in a draft; 4 of 4 access traps denied; 0 of 3 built-in red-team attacks succeeded. Open: (1) the judge marked P-007 as followed because the answer set `escalate: false` — no forbidden action was taken, and the rubric says delivery tickets do not escalate, so this goes to the readout as a question, not a breach; (2) the model endpoint must be confirmed as U.S.-only before real customer data is used. |
+| Security — review pack passed | **yes, one item open** | deliverable IV (re-run 2026-11-14 with the retrieval step): 9 of 9 planted injections reached; 0 of 6 planted PII values in a draft; 4 of 4 access traps denied; 0 of 3 built-in red-team attacks succeeded. P-007 (the judge read `escalate: false` as compliance; no action was taken and the rubric gives false for that ticket) is recommended as held (`reports/readout-decisions.md` §2). Open: U.S.-only processing for the model endpoint is not confirmed (`reports/data-residency.md`). |
 | Governance — canvas signed | **not yet** | deliverable V is written; the risk owner (Ruth Castellanos) has not signed it. |
 
-**Recommendation: not ready for go-live.** Two of four gates do not hold. What the evidence supports today is a pilot on the `suggest` rung only: the system drafts and proposes, writes nothing, and a person does everything else, while retrieval is fixed and the eval contract is re-run.
+**Recommendation: not ready for go-live; ready for a pilot on the `approve` rung on the simulated estate.** The quality gate is on track but measured on 50 of 120 cases, residency for the model endpoint is unconfirmed, and the canvas is unsigned. What the evidence supports today: the wedge drafts, proposes category and priority (priority, escalation and the governing document by the desk's rubric in code), writes internal notes, and stops for a named person on every credit, replacement and status change. Real customer text waits for the provider's residency answer; go-live waits for the full triage run and the signatures.
 
 ## Before and after, on the signed contract
 
@@ -19,7 +19,7 @@
 |---|---|---|---|
 | First response time | 19 h | p95 18 s to a reviewed draft (person still sends it) | lab 5 batch of 8 |
 | Cost per ticket | $31 | $0.074 model cost at the assumed price ($2.5/M in, $10.0/M out) + review time | lab 5 cost report |
-| Triage accuracy on the frozen set | — | 31.7% (38/120) baseline; wedge 30% on the 20-case triage sample (baseline 15% on the same cases); target 75% | lab 3 · `reports/wedge-eval.md` |
+| Triage accuracy on the frozen set | — | 31.7% (38/120) baseline; the wedge **80% (40/50)** on two samples (baseline 30% on the same 50 cases); the rules alone 92.5% on all 120; target 75% | lab 3 · `reports/wedge-triage-summary.md` |
 | Safety suite | — | 100% (30/30) baseline; wedge 5/5 on the sample; 0 of 6 PII leaked, 4 of 4 traps denied in lab 4 | lab 3 · lab 4 |
 
 ## Where it runs
@@ -46,3 +46,7 @@ Cloud · on-prem · air-gapped — and why (Ruth's residency constraint): **on-p
 *Steering committee:* operations: Dana Okafor ______ · finance: Marcus Lindqvist ______ · security: Ruth Castellanos ______ · risk: Ruth Castellanos ______ · date ______ (unsigned: simulated customer)
 
 *Prepared by Shreenath Shetty (FDE). Numbers measured by `labs/lab_5_hitl_operate.py` on 2026-11-08 against the class model: a batch of 8 tickets as agent.priya (the token budget stopped it before ticket 9, as designed) and two load rounds of 6. The $0.074 per ticket uses an assumed price, not a quoted one.*
+
+## The demo deployment (2026-11-14)
+
+The lab 2b chat runs on AWS in us-east-1, on the EC2 instance set up during the weekend (t3.small, IMDSv2 required, no public SSH or web access except from one allow-listed address). It was rolled to commit `2fffd00` with `deploy/ec2_update.sh roll`: the image comes from ECR, the key from Secrets Manager's record and the operator's machine over SSH, never from the image or the repo; the previous container is kept stopped for a one-command rollback. Smoke on the live instance: page 200; API 401 without and with a wrong secret; one real turn 200 as `agent.priya`. There is no TLS on this demo, which is why access is held to one address; a pilot behind the customer's network or a load balancer with a certificate is the next step, and App Runner is not available to this account.

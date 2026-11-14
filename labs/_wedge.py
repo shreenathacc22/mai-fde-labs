@@ -211,6 +211,39 @@ def _from_writes(tool_calls: list) -> dict:
     return out
 
 
+def _enforce_write(name: str, args: dict, desk: dict | None, overrides: list) -> dict:
+    """set_ticket: the priority written is the rubric's priority for the category written."""
+    if name != "set_ticket" or not desk or not args.get("category"):
+        return args
+    rule = (desk.get("priority_by_category") or {}).get(args["category"])
+    if rule and args.get("priority") != rule:
+        overrides.append({"where": "set_ticket", "field": "priority", "model": args.get("priority"), "rule": rule})
+        args = {**args, "priority": rule}
+    return args
+
+
+def _enforce_final(final: dict, desk: dict | None, overrides: list) -> dict:
+    """The answer's priority, escalate and document follow from its category by the
+    desk's rubric (labs/_triage.py). The category stays the model's: if it departs
+    from the rule's, only the priority is re-derived and the departure is recorded."""
+    if not desk or not final.get("category"):
+        return final
+    out = dict(final)
+    if final["category"] == desk.get("category"):
+        for k in ("priority", "escalate", "policy_doc_id"):
+            if desk.get(k) is not None and final.get(k) != desk[k]:
+                overrides.append({"where": "answer", "field": k, "model": final.get(k), "rule": desk[k]})
+                out[k] = desk[k]
+    else:
+        overrides.append({"where": "answer", "field": "category", "model": final["category"],
+                          "rule": desk.get("category"), "kept": "model"})
+        rule = (desk.get("priority_by_category") or {}).get(final["category"])
+        if rule and final.get("priority") != rule:
+            overrides.append({"where": "answer", "field": "priority", "model": final.get("priority"), "rule": rule})
+            out["priority"] = rule
+    return out
+
+
 SUGGEST_POLICIES_TOOL = {
     "type": "function",
     "function": {
@@ -262,6 +295,8 @@ async def run_wedge(user_id: str, ticket_id: str, *, cli, system_prompt: str | N
     seen_ids: set[str] = set()
     p_tok = c_tok = 0
     final: dict = {}
+    desk: dict | None = None                                  # desk_triage from the last suggest_policies
+    overrides: list[dict] = []                                # every place the rubric replaced the model's value
     async with estate_session(user_id) as session:
         me = json.loads(await call(session, "whoami", {}))
         tools = openai_tools((await session.list_tools()).tools) + [SUGGEST_POLICIES_TOOL] + list(extra_tools or [])
@@ -285,9 +320,14 @@ async def run_wedge(user_id: str, ticket_id: str, *, cli, system_prompt: str | N
                     args = json.loads(t.function.arguments or "{}")
                 except json.JSONDecodeError:
                     args = {"_raw": t.function.arguments}
+                args = _enforce_write(name, args, desk, overrides)
                 # ── the gate: decided here, before anything reaches the server ──
                 if name in LOCAL_TOOLS:                       # a read-only helper composed of reads; nothing to gate
                     result = await LOCAL_TOOLS[name](session, args)
+                    try:
+                        desk = json.loads(result).get("desk_triage") or desk
+                    except (json.JSONDecodeError, AttributeError):
+                        pass
                 elif autonomy == "suggest" and risk_of(name) != "read":
                     held.append({"tool": name, "args": args})
                     _audit(user_id, name, args, allowed=False, reason="held: autonomy=suggest")
@@ -325,10 +365,12 @@ async def run_wedge(user_id: str, ticket_id: str, *, cli, system_prompt: str | N
                 final = {**final, **{k: wrote[k] for k in filled}}
                 final["reason"] = (str(final.get("reason") or "") + " [final message was empty or not JSON; "
                                    + ", ".join(filled) + " taken from the wedge's own writes]").strip()
+        final = _enforce_final(final, desk, overrides)
     return {"user": user_id, "ticket_id": ticket_id, "autonomy": autonomy,
             "category": final.get("category"), "priority": final.get("priority"),
             "policy_doc_id": final.get("policy_doc_id"), "escalate": bool(final.get("escalate", False)),
             "draft": str(final.get("draft") or ""), "reason": str(final.get("reason") or ""),
             "tool_calls": tool_calls, "denied": denied, "held": held, "notified": notified,
+            "rule_overrides": overrides,
             "seen_ids": sorted(seen_ids), "tokens": p_tok + c_tok, "prompt_tokens": p_tok, "completion_tokens": c_tok,
             "latency_ms": round((time.perf_counter() - started) * 1000), "rounds": rounds}
