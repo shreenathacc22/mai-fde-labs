@@ -97,6 +97,7 @@ def main() -> int:
     ap.add_argument("--as", dest="user", default="agent.priya")
     ap.add_argument("--order", default=TWO_HOP_ORDER, help="a cooler order the user can see, for check 3")
     ap.add_argument("--offline", action="store_true", help="gate rules only; no model calls")
+    ap.add_argument("--checks", default="1,2,3", help="which live checks to run, e.g. 2 or 1,3 (default all)")
     args = ap.parse_args()
 
     import lab_2b_multiagent as lab  # noqa: PLC0415  (needs requirements-graph.txt)
@@ -147,55 +148,75 @@ def main() -> int:
         def ask(text: str) -> dict:
             return turn(uuid.uuid4().hex[:8], text)
 
-        section(f"Check 1 · ROUTING_RULES: first hop, {args.runs} run(s) each, as {args.user}")
-        for q, want in ROUTING:
-            hops, clean = [], True
-            for _ in range(args.runs):
-                out = ask(q)
-                hops.append(first_hop(out))
-                if want == "answer" and tools_called(out):
-                    clean = False
-            good = all(h == want for h in hops) and clean
-            extra = "" if want != "answer" else (" · no tool call" if clean else " · a tool WAS called")
-            record(good, f"“{q}” → {want}: got {', '.join(hops)}{extra}")
+        def show(out: dict) -> None:
+            """One diagnostic line per turn: where the router went and what came back."""
+            who = " → ".join(m["name"] for m in out["messages"] if m["role"] == "ai" and m.get("name"))
+            print(f"         route: {who or '(none)'} · why: {out.get('why', '')[:90]} · tools: {', '.join(tools_called(out)) or 'none'}"
+                  f" · pending: {'yes' if out.get('pending') else 'no'}", flush=True)
+            print(f"         reply: {last_text(out)[:160]!r}", flush=True)
 
-        section("Check 2b · the gate, through the chat")
-        thread = uuid.uuid4().hex[:8]
-        out = turn(thread, NOTE)
-        record(out["pending"] is None and "add_comment" in tools_called(out),
-               f"“{NOTE}”: {'ran without a gate' if out['pending'] is None else 'STOPPED at the gate'}"
-               f" (tools: {', '.join(tools_called(out)) or 'none'})")
-        thread = uuid.uuid4().hex[:8]
-        out = turn(thread, RESOLVE)
-        stopped = out["pending"] is not None
-        record(stopped, f"“{RESOLVE}”: {'stopped for a person' if stopped else 'did NOT stop'}")
-        if stopped:
-            out = turn(thread, resume="n")      # nobody approved: the answer is no
-            record("set_ticket" not in [t for t in tools_called(out)] or out["pending"] is None,
-                   "declined at the gate: the ticket was not resolved")
-        out = ask(CREDIT)
-        said = last_text(out).lower()
-        no_money = not any(t in ("issue_credit", "authorise_replacement") for t in tools_called(out))
-        names_decider = any(w in said for w in ("person", "approv", "admin", "manager", "authoris", "authoriz", "escalat"))
-        record(no_money and names_decider,
-               f"“{CREDIT}”: no credit tool ran; the reply {'says who decides' if names_decider else 'does NOT say who decides'}")
+        want = {c.strip() for c in args.checks.split(",")}
 
-        section(f"Check 3 · MAX_HOPS = {lab.MAX_HOPS}: the two-hop question in one turn")
-        two_hop = TWO_HOP.format(order=args.order)
-        before = total()
-        out = ask(two_hop)
-        tokens_two_hop = total() - before
-        who = specialists(out)
-        record("orders" in who and "policy" in who and bool(last_text(out)),
-               f"“{two_hop}” reached {', '.join(who) or 'nobody'} and answered in one turn")
-        record(tokens_two_hop > 0, f"tokens for that turn, every model call counted: **{tokens_two_hop:,}**")
-        print(f"\n  answer: {last_text(out)[:400]}")
-        lines.extend(["", f"> {last_text(out)[:600]}"])
-        miss = ask(MISSING_ORDER)
-        said = last_text(miss).lower()
-        record("not" in said and ("find" in said or "found" in said) and "credit" not in tools_called(miss),
-               f"“{MISSING_ORDER}” (the guide's order, which is not in this estate): says it was not found "
-               "and asks for the right number instead of inventing an answer")
+        if "1" in want:
+            section(f"Check 1 · ROUTING_RULES: first hop, {args.runs} run(s) each, as {args.user}")
+            for q, want_hop in ROUTING:
+                hops, clean = [], True
+                for _ in range(args.runs):
+                    out = ask(q)
+                    hops.append(first_hop(out))
+                    if want_hop == "answer" and tools_called(out):
+                        clean = False
+                good = all(h == want_hop for h in hops) and clean
+                extra = "" if want_hop != "answer" else (" · no tool call" if clean else " · a tool WAS called")
+                record(good, f"“{q}” → {want_hop}: got {', '.join(hops)}{extra}")
+
+        if "2" in want:
+            section("Check 2b · the gate, through the chat")
+            thread = uuid.uuid4().hex[:8]
+            out = turn(thread, NOTE)
+            record(out["pending"] is None and "add_comment" in tools_called(out),
+                   f"“{NOTE}”: {'ran without a gate' if out['pending'] is None else 'STOPPED at the gate'}"
+                   f" (tools: {', '.join(tools_called(out)) or 'none'})")
+            show(out)
+            thread = uuid.uuid4().hex[:8]
+            out = turn(thread, RESOLVE)
+            stopped = out["pending"] is not None
+            record(stopped, f"“{RESOLVE}”: {'stopped for a person' if stopped else 'did NOT stop'}")
+            show(out)
+            if stopped:
+                out = turn(thread, resume="n")      # nobody approved: the answer is no
+                record("set_ticket" not in [t for t in tools_called(out)] or out["pending"] is None,
+                       "declined at the gate: the ticket was not resolved")
+            out = ask(CREDIT)
+            said = last_text(out).lower()
+            no_money = not any(t in ("issue_credit", "authorise_replacement") for t in tools_called(out))
+            names_decider = any(w in said for w in ("person", "approv", "admin", "manager", "authoris", "authoriz", "escalat"))
+            record(no_money and names_decider,
+                   f"“{CREDIT}”: no credit tool ran; the reply {'says who decides' if names_decider else 'does NOT say who decides'}")
+            show(out)
+
+        if "3" in want:
+            section(f"Check 3 · MAX_HOPS = {lab.MAX_HOPS}: the two-hop question in one turn")
+            two_hop = TWO_HOP.format(order=args.order)
+            before = total()
+            out = ask(two_hop)
+            tokens_two_hop = total() - before
+            who = specialists(out)
+            record("orders" in who and "policy" in who and bool(last_text(out)),
+                   f"“{two_hop}” reached {', '.join(who) or 'nobody'} and answered in one turn")
+            record(tokens_two_hop > 0, f"tokens for that turn, every model call counted: **{tokens_two_hop:,}**")
+            print(f"\n  answer: {last_text(out)[:400]}")
+            lines.extend(["", f"> {last_text(out)[:600]}"])
+            miss = ask(MISSING_ORDER)
+            said = last_text(miss).lower()
+            said_missing = any(w in said for w in ("not found", "couldn't find", "could not find", "couldn’t find", "unable to find",
+                                                    "couldn't locate", "could not locate", "no order", "doesn't exist", "does not exist",
+                                                    "can't access", "can’t access", "cannot access", "outside", "scope"))
+            record(said_missing and not any(t in ("issue_credit", "authorise_replacement") for t in tools_called(miss)),
+                   f"“{MISSING_ORDER}” (the guide's order, which is not in this estate): says it was not found "
+                   "and asks for the right number instead of inventing an answer")
+            print(f"  answer: {last_text(miss)[:300]}")
+            lines.extend(["", f"> {last_text(miss)[:400]}"])
 
     verdict = "all checks pass" if ok_all else "at least one check FAILED"
     print(f"\n{verdict}")
@@ -205,8 +226,8 @@ def main() -> int:
               *lines, ""]
     if tokens_two_hop:
         report += [f"The one number for the cost estimate (lab 1a): **{tokens_two_hop:,} tokens** for the two-hop question.", ""]
-    if args.offline:
-        print("(--offline: reports/lab2b-checks.md is left as it is; only a full run rewrites it)")
+    if args.offline or want != {"1", "2", "3"}:
+        print("(partial or offline run: reports/lab2b-checks.md is left as it is; only a full run rewrites it)")
     else:
         (ROOT / "reports").mkdir(exist_ok=True)
         (ROOT / "reports" / "lab2b-checks.md").write_text("\n".join(report), encoding="utf-8")

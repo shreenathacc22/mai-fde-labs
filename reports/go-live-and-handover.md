@@ -6,9 +6,9 @@
 
 | Gate | Holds? | Evidence |
 |---|---|---|
-| Quality — the eval contract holds | **no** | lab 3 report: safety 30/30 (100%, holds); triage 38/120 (31.7%) against a proposed 75%; retrieval 15/30 (50%) against a proposed 90%. Most triage misses are the policy field, which is the retrieval problem showing up in the triage score. The retrieval step was rebuilt on 2026-11-09 (desk map in code, 93.3% top-3 on the retrieval cases, measured without a model); the gate stays red until the wedge is re-run on the frozen set. |
+| Quality — the eval contract holds | **no** | lab 3 report: safety 30/30 (100%, holds); triage 38/120 (31.7%) against a proposed 75%; retrieval 15/30 (50%) against a proposed 90% — the frozen baseline. Measured 2026-11-14: the retrieval step alone finds the governing document for 28 of the 30 retrieval cases (93.3%); the wedge on lab 3's fixed 30-case sample scores triage 6/20 against the baseline's 3/20 on the same cases, retrieval 4/5 (= baseline), safety 5/5. Triage is still far from 75%: 11 of the 14 remaining misses are priority. The gate stays red until the full set is re-run and triage reaches target. |
 | Performance — SLOs under load | yes | lab 5 load test: 6 tickets through Semaphore(2) — 6 finished, p50 13.0 s, p95 17.0 s, 0 × 429; unbounded burst of 6: 6 finished, 0 × 429 |
-| Security — review pack passed | **yes, one item open** | deliverable IV: 9 of 9 planted injections reached, 0 followed; 0 of 6 planted PII values in a draft; 4 of 4 access traps denied. Open: the model endpoint must be confirmed as U.S.-only before real customer data is used. |
+| Security — review pack passed | **yes, two items open** | deliverable IV (re-run 2026-11-14 with the retrieval step): 9 of 9 planted injections reached; 0 of 6 planted PII values in a draft; 4 of 4 access traps denied; 0 of 3 built-in red-team attacks succeeded. Open: (1) the judge marked P-007 as followed because the answer set `escalate: false` — no forbidden action was taken, and the rubric says delivery tickets do not escalate, so this goes to the readout as a question, not a breach; (2) the model endpoint must be confirmed as U.S.-only before real customer data is used. |
 | Governance — canvas signed | **not yet** | deliverable V is written; the risk owner (Ruth Castellanos) has not signed it. |
 
 **Recommendation: not ready for go-live.** Two of four gates do not hold. What the evidence supports today is a pilot on the `suggest` rung only: the system drafts and proposes, writes nothing, and a person does everything else, while retrieval is fixed and the eval contract is re-run.
@@ -19,8 +19,8 @@
 |---|---|---|---|
 | First response time | 19 h | p95 18 s to a reviewed draft (person still sends it) | lab 5 batch of 8 |
 | Cost per ticket | $31 | $0.074 model cost at the assumed price ($2.5/M in, $10.0/M out) + review time | lab 5 cost report |
-| Triage accuracy on the frozen set | — | 31.7% (38/120) for the baseline agent; target 75% | lab 3 |
-| Safety suite | — | 100% (30/30) | lab 3 |
+| Triage accuracy on the frozen set | — | 31.7% (38/120) baseline; wedge 30% on the 20-case triage sample (baseline 15% on the same cases); target 75% | lab 3 · `reports/wedge-eval.md` |
+| Safety suite | — | 100% (30/30) baseline; wedge 5/5 on the sample; 0 of 6 PII leaked, 4 of 4 traps denied in lab 4 | lab 3 · lab 4 |
 
 ## Where it runs
 

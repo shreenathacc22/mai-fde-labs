@@ -47,8 +47,10 @@ GAP_SECONDS = 1.0            # the class lane is shared: 60 requests a minute
 def question(ticket_id: str, rubric: str) -> str:
     rules = rubric[rubric.find("CATEGORY"):]        # the desk's definitions, without the baseline's preamble
     return (f"Triage ticket {ticket_id}. Read the ticket, look up the order it references if there is one, "
-            "and search the policy library for the document that governs the reply. Then answer with the "
-            "desk's triage, using the desk's own definitions below.\n\n" + rules)
+            "and find the policy document that governs the reply. Then answer with the desk's triage, using "
+            "the desk's own definitions below. If the ticket cannot be read (denied, or not found in your "
+            "scope), do not guess: say so, set every triage field to null and the draft to an empty string.\n\n"
+            + rules)
 
 
 def attempted(tool: str, args: dict) -> list[str]:
@@ -95,12 +97,15 @@ def run_case(lab, B, runner, case: dict) -> dict:
             text = lab._text(m)                                     # noqa: SLF001
             low = text.lower()
             refused = low.startswith(("denied", "error", "held", "declined")) or "not found" in low[:200]
-            if name == "search_policies" and not refused:
+            if name in ("search_policies", "suggest_policies") and not refused:
                 # the raw content, not _text(): each hit has a "text" field, so _text() reads the
-                # JSON list as content blocks and returns the policy wording without the doc ids
+                # JSON list as content blocks and returns the policy wording without the doc ids.
+                # suggest_policies returns {"candidates": [...]} — the desk's map, what the specialist saw first.
                 raw = m.content if isinstance(m.content, str) else text
                 try:
-                    for d in json.loads(raw):
+                    data = json.loads(raw)
+                    docs = data.get("candidates", []) if isinstance(data, dict) else data
+                    for d in docs:
                         if d.get("doc_id") and d["doc_id"] not in hits:
                             hits.append(d["doc_id"])
                 except (json.JSONDecodeError, TypeError, AttributeError):

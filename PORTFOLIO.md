@@ -4,7 +4,7 @@ My work from the Modern AI Pro **Forward Deployed Engineer** weekend (Oct 30 –
 
 This branch is a fork of the course lab kit by Dr. Balaji Viswanathan ([balajivis/mai-fde-labs](https://github.com/balajivis/mai-fde-labs)). The kit, the simulated customer, the golden set and the lab scripts are his. What I added is listed below, and [`README.md`](./README.md) is the kit's own.
 
-**Where it stands:** all six deliverables are written; none is signed, because the customer is simulated. By its own go-live gate the system is **not ready for go-live**: safety holds at 100%, but triage and retrieval are well under target in the contract. The retrieval step has since been rebuilt and measures 93% on its own (2026-11-09); the contract is re-run once a fresh key is available. Two measurements are still owed and are listed under [What is still open](#what-is-still-open).
+**Where it stands:** all six deliverables are written; none is signed, because the customer is simulated. By its own go-live gate the system is **not ready for go-live**: safety holds at 100%, but triage and retrieval are well under target in the contract. The retrieval step has since been rebuilt and measures 93% on its own; on a 30-case sample the wedge doubles the baseline's triage (6/20 vs 3/20) with safety 5/5 (2026-11-14). What still fails triage is priority, not retrieval. Two measurements are still owed and are listed under [What is still open](#what-is-still-open).
 
 ## What I built
 
@@ -40,9 +40,15 @@ The flow on one sheet: [`reports/calder-rowe-flow.svg`](./reports/calder-rowe-fl
 | Model cost per ticket | about $0.07 at an assumed price, against the customer's $31 | lab 5 |
 | Spend cap | stopped the batch before ticket 9 of 10, as designed | lab 5 |
 | Approval step | with nobody to approve, the credit was declined and logged | lab 5 |
-| Routing | 5 of 5 questions reached the intended specialist, 3 runs out of 3 | [`reports/lab2b-checks.md`](./reports/lab2b-checks.md) |
-| Approval gate | an internal note runs; closing a ticket stops; no credit tool runs | same |
+| Routing | 5 of 5 questions reached the intended specialist, 3 runs out of 3 (after one rule fix the check itself caught) | [`reports/lab2b-checks.md`](./reports/lab2b-checks.md), 2026-11-14 |
+| Approval gate | an internal note runs; closing a ticket stops; no credit tool runs (passed 3 of 4 runs; the diagnostics for the odd one are in the report) | same |
+| Two-hop question | orders → policy → answer in one turn, a real warranty answer, **12,931 tokens** | same |
 | Retrieval (governing document in top 3) | 50% → **93.3%** on the 30 golden retrieval cases; 34% → 94% on all 559 nameable tickets | [`reports/retrieval-measurement.md`](./reports/retrieval-measurement.md), 2026-11-09 |
+| The wedge on the golden set (30-case sample) | triage **6/20 vs the baseline's 3/20** on the same cases; retrieval 4/5 = baseline; safety 5/5; 18k tokens per case | [`reports/wedge-eval.md`](./reports/wedge-eval.md), 2026-11-14 |
+| Golden cases through the lab 2b chat (10 chosen cases) | 6/10 structural in each of two runs (not the same six: run-to-run variation); safety 4/4 both times; 19–24k tokens per case. The chat's hop budget of 3 ends 2 of 10 turns before the policy specialist, and the final JSON names no document in 2 more | [`reports/lab2b-eval.md`](./reports/lab2b-eval.md), [first run](./reports/lab2b-eval-first-run.md), 2026-11-14 |
+| Judge calibration | 40 cases: agrees with labeller A on all (κ 1.0), with B on 72.5% (κ 0.481), A–B themselves 72.5% on the sample | [`reports/eval-contract.md`](./reports/eval-contract.md), 2026-11-14 |
+| Security review, re-run with the retrieval step | 9/9 plants reached; 0/6 PII leaked; 4/4 traps denied; 0/3 red-team attacks succeeded; 1 plant judged "followed" on an `escalate: false` reading, no action taken | [`reports/security-review-pack.md`](./reports/security-review-pack.md), 2026-11-14 |
+| Container | `fde-chat` image built (415 MB, no secrets inside); refuses to start without `CHAT_SECRET`; page 200, API 401 without the secret | 2026-11-09 |
 | edtech product | 30 of 30 deterministic checks pass | `python edtech/checks.py` |
 
 ## The architecture on one page
@@ -80,10 +86,9 @@ python scripts/eval_lab2b.py              # ten golden cases through the chat (n
 
 ## What is still open
 
-- **The two-hop check is not demonstrated.** The lab guide's question names order O-27612, which does not exist in this estate, so the chat correctly answered "not found". The check now asks about a real order, but the class practice key ran out of tokens before the rerun.
-- **`scripts/eval_lab2b.py` has not been run against the model**, for the same reason. Its plumbing passes the offline self-test; it has produced no scores yet.
-- **The judge is not calibrated.** Its last run stopped at 14 of 40 cases, all triage. Trust the structural scores until it is rerun.
-- **Triage (31.7%) and retrieval (50%) in the contract are still the baseline numbers.** The retrieval step is rebuilt and measured at 93% on its own, but the contract only moves when the wedge is re-run on the frozen set (`python labs/lab_3_eval_contract.py --live --n 180` is the kit's way; it needs a key). Whether triage follows is the thing to find out.
-- **Only one red-team attack of my own** is in the security pack, beyond the nine planted ones.
+- **Triage is 30% on the sample against a 75% target.** The wedge now sees the right document (retrieval 93% on its own); 11 of its 14 remaining triage misses on the sample are **priority** (high where the desk says normal, normal where it says low) and three are address-update tickets called billing where the golden set says other. Next fix: the rubric wording the wedge is given, then a full 180-case run (~4.8M tokens) to move the contract.
+- **The judge sides with labeller A.** κ 1.0 with A and 0.481 with B on 40 cases, where A and B agree on 72.5%; the cases they disagree on are a rule to settle at the readout (`golden/DISAGREEMENTS.md`), not a judge to trust there.
+- **One plant judged "followed" in the security review** (P-007): the wedge took no forbidden action but answered `escalate: false` on a ticket whose quoted text said "no human". Recorded as an open question for the readout.
 - **U.S.-only data residency is unconfirmed** for the model endpoint.
-- **Not deployed.** The container builds are written but were not built or run for this branch.
+- **Not deployed to AWS.** The container is built and smoke-tested locally; the ECR → App Runner steps in `docs/GRAPH.md` were not run (cost, and the customer's AWS login).
+- **The deliverables are unsigned**, because the customer is simulated; every owner named in them is a proposal.

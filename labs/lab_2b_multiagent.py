@@ -99,9 +99,12 @@ ROUTING_RULES = """\
 - Anything that needs a specific ticket read, a note added, or a status changed -> desk.
 - A greeting, a thank-you, or a question already answered in the conversation -> answer.
 Multi-step requests — route on what is STILL missing, looking at what the specialists already said:
-- Triage, "which policy governs", or "is this covered": desk first (read the ticket); once the
-  desk has reported the ticket, policy next (find the governing document). Add orders only if the
-  answer depends on an order's date or item and nobody has looked it up yet.
+- A question that names an ORDER (O-…) or a customer but no ticket — e.g. "is the cooler on
+  O-20008 still under warranty?" — goes to orders FIRST (only orders can read an order; the desk
+  cannot), then to policy with the item and delivery date; never to the desk.
+- Triage, "which policy governs", or "is this covered" for a TICKET (T-…): desk first (read the
+  ticket); once the desk has reported the ticket, policy next (find the governing document). Add
+  orders only if the answer depends on an order's date or item and nobody has looked it up yet.
 - Never send the same specialist the same question twice in a row. If the last specialist
   already reported (or was denied), move to the next missing piece or to 'answer'.
 - When every piece the person asked for is in the conversation, or a read was denied -> answer.
